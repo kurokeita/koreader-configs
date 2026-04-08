@@ -1,0 +1,149 @@
+msgid ""
+msgstr ""
+"projecttitle/bg/>\n"
+"Language: bg_BG\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+# covermenu.lua
+msgid "Library"
+msgstr "Библиотека"
+
+# listmenu.lua
+msgid "Folders"
+msgstr "Папки"
+
+msgid "Book"
+msgstr "Книга"
+
+# main.lua
+msgid "Project: Title"
+msgstr "Project: Title"
+
+msgid "Decrease Items Per Page"
+msgstr "Намаляване на елементите на страница"
+
+msgid "Increase Items Per Page"
+msgstr "Увеличаване на елементите на страница"
+
+msgid "Cover List"
+msgstr "Списък с корици"
+
+msgid "Cover Grid"
+msgstr "Решетка с корици"
+
+msgid "Details List"
+msgstr "Списък с подробности"
+
+msgid "Filenames List"
+msgstr "Списък с имена"
+
+msgid "Project: Title settings"
+msgstr "Project: Title настройки"
+
+msgid "Portrait cover grid mode"
+msgstr "Решетка с корици: портретен режим"
+
+msgid "Landscape cover grid mode"
+msgstr "Решетка с корици: пейзажен режим"
+
+msgid "List modes"
+msgstr "Режим списък"
+
+msgid "Folder display"
+msgstr "Режим папка"
+
+msgid "Auto-generate cover images from books"
+msgstr "Автоматично генериране на корици от книги"
+
+msgid "Overlay name and details in cover grid"
+msgstr "Наслагване на име и подробности в решетката"
+
+msgid "Book display"
+msgstr "Показване на книги"
+
+msgid "Show series"
+msgstr "Показване на серии"
+
+msgid "Show pages read instead of progress %"
+msgstr "Показване на прочетени страници вместо % напредък"
+
+msgid "Show file info instead of pages or progress %"
+msgstr "Показване на информация за файла вместо страници или % напредък"
+
+msgid "Show progress % instead of progress bars"
+msgstr "Показване на процент на напредък вместо индикатори за напредък"
+
+msgid "Always show maximum length progress bars"
+msgstr "Винаги показвай индикатори за напредък с максимална дължина"
+
+msgid "Use custom book status screen"
+msgstr "Използвай персонализиран екран за статуса на книгите"
+
+msgid "Footer"
+msgstr "Долен колонтитул"
+
+msgid "Replace folder name with device info"
+msgstr "Замени името на папката с информация за устройството"
+
+msgid "Show page controls in left corner"
+msgstr "Покажи контролите на страниците в левия ъгъл"
+
+msgid "Library mode"
+msgstr "Режим библиотека"
+
+msgid "Show opened books first"
+msgstr "Покажи първо отворените книги"
+
+msgid "Cache database"
+msgstr "Кеш база данни"
+
+msgid "Scan home folder for new books automatically"
+msgstr "Сканирай автоматично домашната папка за нови книги"
+
+msgid "Empty cache"
+msgstr "Изчисти кеша"
+
+msgid "Are you sure that you want to delete cover and metadata cache?"
+msgstr "Сигурен ли си, че искаш да изтриеш кеша с корици и метаданни?"
+
+msgid "Cache emptied."
+msgstr "Кешът е изчистен."
+
+# bookinfomanager.lua
+msgid ""
+"This will extract metadata and cover images from books in the current "
+"directory.\n"
+"Once extraction has started, you can abort at any moment by tapping on the "
+"screen.\n"
+"\n"
+"This extraction may take time and use some battery power: you may wish to "
+"keep your device plugged in."
+msgstr ""
+"Това ще извлече метаданни и изображения на корици от книгите в текущата "
+"директория.\n"
+"След като извличането започне, можете да го прекъснете по всяко време, като докоснете "
+"екрана.\n"
+"\n"
+"Извличането може да отнеме време и да изразходва част от батерията: добре е да  "
+"оставите устройството си включено в зарядното."
+
+msgid "Found %1 books.\nLooking for new books…"
+msgstr "Намерени са %1 книги.\nТърсене на нови книги…"
+
+msgid "No new books found."
+msgstr "Няма намерени нови книги."
+
+msgid "Do you want to stop?"
+msgstr "Искате ли да спрете?"
+
+msgid "Continue Indexing"
+msgstr "Продължаване на индексирането"
+
+msgid "Stop Indexing"
+msgstr "Сприране на индексирането"
+
+msgid "Tap anywhere to stop"
+msgstr "Докоснете където и да е, за да спрете"

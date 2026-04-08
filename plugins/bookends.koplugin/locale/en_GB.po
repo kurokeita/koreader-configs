@@ -1,0 +1,48 @@
+# Bookends — KOReader Plugin
+# English (United Kingdom) translation
+# Only strings that differ from American English
+msgid ""
+msgstr ""
+"Language: en_GB\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Bottom-center"
+msgstr "Bottom-centre"
+
+msgid "Invert tick color on read portion"
+msgstr "Invert tick colour on read portion"
+
+msgid "Metro track color"
+msgstr "Metro track colour"
+
+msgid "Metro track color (% black)"
+msgstr "Metro track colour (% black)"
+
+msgid "Prioritise left/right and truncate long center text"
+msgstr "Prioritise left/right and truncate long centre text"
+
+msgid "Progress bar colors"
+msgstr "Progress bar colours"
+
+msgid "Read color"
+msgstr "Read colour"
+
+msgid "Read color (% black)"
+msgstr "Read colour (% black)"
+
+msgid "Tick color"
+msgstr "Tick colour"
+
+msgid "Tick color (% black)"
+msgstr "Tick colour (% black)"
+
+msgid "Top-center"
+msgstr "Top-centre"
+
+msgid "Unread color"
+msgstr "Unread colour"
+
+msgid "Unread color (% black)"
+msgstr "Unread colour (% black)"

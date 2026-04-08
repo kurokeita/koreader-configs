@@ -1,0 +1,877 @@
+# Bookends — KOReader Plugin
+# Translation template
+msgid ""
+msgstr ""
+"Project-Id-Version: bookends\n"
+"POT-Creation-Date: 2026-04-03 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgid "12-hour clock"
+msgstr ""
+
+msgid "24-hour clock"
+msgstr ""
+
+msgid "Add line"
+msgstr ""
+
+msgid "Adjust / contrast"
+msgstr ""
+
+msgid "Adjust margins"
+msgstr ""
+
+msgid "All"
+msgstr ""
+
+msgid "All pg"
+msgstr ""
+
+msgid "Anchor"
+msgstr ""
+
+msgid "Arrow down"
+msgstr ""
+
+msgid "Arrow left"
+msgstr ""
+
+msgid "Arrow left to bar"
+msgstr ""
+
+msgid "Arrow left with tail"
+msgstr ""
+
+msgid "Arrow right"
+msgstr ""
+
+msgid "Arrow right to bar"
+msgstr ""
+
+msgid "Arrow right with tail"
+msgstr ""
+
+msgid "Arrows"
+msgstr ""
+
+msgid "Arrows left-right"
+msgstr ""
+
+msgid "Arrow up"
+msgstr ""
+
+msgid "Author(s)"
+msgstr ""
+
+msgid "Bar"
+msgstr ""
+
+msgid "Bar chart"
+msgstr ""
+
+msgid "Bar thickness (px)"
+msgstr ""
+
+msgid "Battery (changes with level)"
+msgstr ""
+
+msgid "Battery icon (dynamic)"
+msgstr ""
+
+msgid "Battery level"
+msgstr ""
+
+msgid "black"
+msgstr ""
+
+msgid "Bold"
+msgstr ""
+
+msgid "Bold italic"
+msgstr ""
+
+msgid "book"
+msgstr ""
+
+msgid "Book"
+msgstr ""
+
+msgid "Book+"
+msgstr ""
+
+msgid "Book++"
+msgstr ""
+
+msgid "Book+++"
+msgstr ""
+
+msgid "Bookends"
+msgstr ""
+
+msgid "Bookends is up to date."
+msgstr ""
+
+msgid "Bookends updated to v"
+msgstr ""
+
+msgid "Book language"
+msgstr ""
+
+msgid "Bookmark (filled)"
+msgstr ""
+
+msgid "Bookmark (outline)"
+msgstr ""
+
+msgid "Book percentage read"
+msgstr ""
+
+msgid "Border"
+msgstr ""
+
+msgid "Bordered"
+msgstr ""
+
+msgid "bottom"
+msgstr ""
+
+msgid "Bottom"
+msgstr ""
+
+msgid "Bottom-center"
+msgstr ""
+
+msgid "Bottom-left"
+msgstr ""
+
+msgid "Bottom-right"
+msgstr ""
+
+msgid "Built-in presets"
+msgstr ""
+
+msgid "Bullet"
+msgstr ""
+
+msgid "Calendar"
+msgstr ""
+
+msgid "Calendar (checked)"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Ch."
+msgstr ""
+
+msgid "chapter"
+msgstr ""
+
+msgid "Chapter"
+msgstr ""
+
+msgid "Chapter percentage read"
+msgstr ""
+
+msgid "Chapter ticks: all levels"
+msgstr ""
+
+msgid "Chapter ticks: off"
+msgstr ""
+
+msgid "Chapter ticks: top 2 levels"
+msgstr ""
+
+msgid "Chapter ticks: top level"
+msgstr ""
+
+msgid "Chapter title"
+msgstr ""
+
+msgid "Check"
+msgstr ""
+
+msgid "Check for updates"
+msgstr ""
+
+msgid "Checking for updates..."
+msgstr ""
+
+msgid "Check mark"
+msgstr ""
+
+msgid "Classic alternating"
+msgstr ""
+
+msgid "Clock"
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+msgid "Cloud"
+msgstr ""
+
+msgid "Club"
+msgstr ""
+
+msgid "Cog"
+msgstr ""
+
+msgid "Copyright"
+msgstr ""
+
+msgid "Could not check for updates."
+msgstr ""
+
+msgid "Could not save download."
+msgstr ""
+
+msgid "Cross"
+msgstr ""
+
+msgid "Cross mark"
+msgstr ""
+
+msgid "Current page number"
+msgstr ""
+
+msgid "Custom presets"
+msgstr ""
+
+msgid "Cycle bookends preset"
+msgstr ""
+
+msgid "Dagger"
+msgstr ""
+
+msgid "Date long (28 March 2026)"
+msgstr ""
+
+msgid "Date numeric (28/03/2026)"
+msgstr ""
+
+msgid "Date short (28 Mar)"
+msgstr ""
+
+msgid "default"
+msgstr ""
+
+msgid "Default font"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Device"
+msgstr ""
+
+msgid "Diamond"
+msgstr ""
+
+msgid "Diamond suit"
+msgstr ""
+
+msgid "Division slash"
+msgstr ""
+
+msgid "Document format (EPUB, PDF, etc.)"
+msgstr ""
+
+msgid "Document title"
+msgstr ""
+
+msgid "Double angle left"
+msgstr ""
+
+msgid "Double angle right"
+msgstr ""
+
+msgid "Double arrows right"
+msgstr ""
+
+msgid "Double dagger"
+msgstr ""
+
+msgid "Double slash"
+msgstr ""
+
+msgid "Download failed."
+msgstr ""
+
+msgid "Downloading update..."
+msgstr ""
+
+msgid "Dynamic"
+msgstr ""
+
+msgid "Edge"
+msgstr ""
+
+msgid "Em dash"
+msgstr ""
+
+msgid "Enable"
+msgstr ""
+
+msgid "Enable bookends"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
+msgid "En dash"
+msgstr ""
+
+msgid "Even"
+msgstr ""
+
+msgid "Even pg"
+msgstr ""
+
+msgid "Extra bottom margin"
+msgstr ""
+
+msgid "Extra left margin"
+msgstr ""
+
+msgid "Extra right margin"
+msgstr ""
+
+msgid "Extra top margin"
+msgstr ""
+
+msgid "Eye"
+msgstr ""
+
+msgid "Eye (hidden)"
+msgstr ""
+
+msgid "File name"
+msgstr ""
+
+msgid "Fill: bottom to top"
+msgstr ""
+
+msgid "Fill: left to right"
+msgstr ""
+
+msgid "Fill: right to left"
+msgstr ""
+
+msgid "Fill: top to bottom"
+msgstr ""
+
+msgid "Flag"
+msgstr ""
+
+msgid "Font"
+msgstr ""
+
+msgid "Font..."
+msgstr ""
+
+msgid "Font scale"
+msgstr ""
+
+msgid "Font size for line"
+msgstr ""
+
+msgid "Fraction slash"
+msgstr ""
+
+msgid "Frontlight brightness"
+msgstr ""
+
+msgid "Frontlight warmth"
+msgstr ""
+
+msgid "Full width progress bars"
+msgstr ""
+
+msgid "HDD / disk"
+msgstr ""
+
+msgid "Heart"
+msgstr ""
+
+msgid "High voltage"
+msgstr ""
+
+msgid "Horizontal ellipsis"
+msgstr ""
+
+msgid "Hot springs / warmth"
+msgstr ""
+
+msgid "Hourglass"
+msgstr ""
+
+msgid "Hourglass (filled)"
+msgstr ""
+
+msgid "Symbols"
+msgstr ""
+
+msgid "Infinity"
+msgstr ""
+
+msgid "Info"
+msgstr ""
+
+msgid "Inline progress bars can be added via the line editor"
+msgstr ""
+
+msgid "Insert symbol"
+msgstr ""
+
+msgid "Insert token"
+msgstr ""
+
+msgid "Installation failed: "
+msgstr ""
+
+msgid "Installed: "
+msgstr ""
+
+msgid "Invert tick color on read portion"
+msgstr ""
+
+msgid "Italic"
+msgstr ""
+
+msgid "Latest: "
+msgstr ""
+
+msgid "left"
+msgstr ""
+
+msgid "Left"
+msgstr ""
+
+msgid "Lightbulb"
+msgstr ""
+
+msgid "Lightning bolt"
+msgstr ""
+
+msgid "Line"
+msgstr ""
+
+msgid "Line %1: %2"
+msgstr ""
+
+msgid "long press lines to manage"
+msgstr ""
+
+msgid "Long press presets to edit"
+msgstr ""
+
+msgid "Memory chip"
+msgstr ""
+
+msgid "Metadata"
+msgstr ""
+
+msgid "Metro"
+msgstr ""
+
+msgid "Metro track color"
+msgstr ""
+
+msgid "Metro track color (% black)"
+msgstr ""
+
+msgid "Middle dot"
+msgstr ""
+
+msgid "Mobile"
+msgstr ""
+
+msgid "Moon"
+msgstr ""
+
+msgid "Move down"
+msgstr ""
+
+msgid "Move to"
+msgstr ""
+
+msgid "Move up"
+msgstr ""
+
+msgid "No download available for this release."
+msgstr ""
+
+msgid "Number of bookmarks"
+msgstr ""
+
+msgid "Number of highlights"
+msgstr ""
+
+msgid "Number of notes"
+msgstr ""
+
+msgid "Numero"
+msgstr ""
+
+msgid "Odd"
+msgstr ""
+
+msgid "Odd pg"
+msgstr ""
+
+msgid "off"
+msgstr ""
+
+msgid "on"
+msgstr ""
+
+msgid "Page / progress"
+msgstr ""
+
+msgid "Pages left in book"
+msgstr ""
+
+msgid "Pages left in chapter"
+msgstr ""
+
+msgid "Pages read in chapter"
+msgstr ""
+
+msgid "Paper aeroplane"
+msgstr ""
+
+msgid "Pilcrow / paragraph"
+msgstr ""
+
+msgid "Position"
+msgstr ""
+
+msgid "Power"
+msgstr ""
+
+msgid "Preset '%1' loaded."
+msgstr ""
+
+msgid "Presets"
+msgstr ""
+
+msgid "Prioritise left/right and truncate long center text"
+msgstr ""
+
+msgid "+ Progress bar"
+msgstr ""
+
+msgid "- Progress bar"
+msgstr ""
+
+msgid "Progress bar colors"
+msgstr ""
+
+msgid "Progress bar (configure type in line editor)"
+msgstr ""
+
+msgid "Progress bars"
+msgstr ""
+
+msgid "RAM used %"
+msgstr ""
+
+msgid "Read color"
+msgstr ""
+
+msgid "Read color (% black)"
+msgstr ""
+
+msgid "Reading"
+msgstr ""
+
+msgid "Reading speed (pages/hour)"
+msgstr ""
+
+msgid "Regular"
+msgstr ""
+
+msgid "Reset"
+msgstr ""
+
+msgid "Reset all to defaults"
+msgstr ""
+
+msgid "Restart"
+msgstr ""
+
+msgid "Restart KOReader now?"
+msgstr ""
+
+msgid "Rich detail"
+msgstr ""
+
+msgid "right"
+msgstr ""
+
+msgid "Right"
+msgstr ""
+
+msgid "Round"
+msgstr ""
+
+msgid "Rounded"
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "Section sign"
+msgstr ""
+
+msgid "Select font"
+msgstr ""
+
+msgid "Separators"
+msgstr ""
+
+msgid "Series with index"
+msgstr ""
+
+msgid "Session pages read"
+msgstr ""
+
+msgid "Session reading time"
+msgstr ""
+
+msgid "Set"
+msgstr ""
+
+msgid "Set bookends"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "SimpleUI status bar"
+msgstr ""
+
+msgid "Single angle left"
+msgstr ""
+
+msgid "Single angle right"
+msgstr ""
+
+msgid "Size"
+msgstr ""
+
+msgid "Slash"
+msgstr ""
+
+msgid "Sliders"
+msgstr ""
+
+msgid "Solid"
+msgstr ""
+
+msgid "Spade"
+msgstr ""
+
+msgid "Speed reader"
+msgstr ""
+
+msgid "Star (filled)"
+msgstr ""
+
+msgid "Star (outline)"
+msgstr ""
+
+msgid "Status"
+msgstr ""
+
+msgid "Stopwatch"
+msgstr ""
+
+msgid "Style"
+msgstr ""
+
+msgid "Sun (filled)"
+msgstr ""
+
+msgid "Sun (outline)"
+msgstr ""
+
+msgid "Symbols"
+msgstr ""
+
+msgid "Tachometer"
+msgstr ""
+
+msgid "Thickness"
+msgstr ""
+
+msgid "Tick color"
+msgstr ""
+
+msgid "Tick color (% black)"
+msgstr ""
+
+msgid "Tilde"
+msgstr ""
+
+msgid "Time"
+msgstr ""
+
+msgid "Time / date"
+msgstr ""
+
+msgid "Time left in book"
+msgstr ""
+
+msgid "Time left in chapter"
+msgstr ""
+
+msgid "Toggle bookends"
+msgstr ""
+
+msgid "Tokens"
+msgstr ""
+
+msgid "top"
+msgstr ""
+
+msgid "Top"
+msgstr ""
+
+msgid "Top-center"
+msgstr ""
+
+msgid "Top-left"
+msgstr ""
+
+msgid "Top-right"
+msgstr ""
+
+msgid "Total pages"
+msgstr ""
+
+msgid "Total pages in chapter"
+msgstr ""
+
+msgid "Total reading time for book"
+msgstr ""
+
+msgid "Triangle down"
+msgstr ""
+
+msgid "Triangle left"
+msgstr ""
+
+msgid "Triangle right"
+msgstr ""
+
+msgid "Triangle up"
+msgstr ""
+
+msgid "Triangular bullet"
+msgstr ""
+
+msgid "Truncation gap between regions"
+msgstr ""
+
+msgid "Truncation gap between regions (px)"
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "Unread color"
+msgstr ""
+
+msgid "Unread color (% black)"
+msgstr ""
+
+msgid "Update and restart"
+msgstr ""
+
+msgid "Update available!"
+msgstr ""
+
+msgid "Version: "
+msgstr ""
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Vertical bar"
+msgstr ""
+
+msgid "Vertical ellipsis"
+msgstr ""
+
+msgid "Warning"
+msgstr ""
+
+msgid "Watch"
+msgstr ""
+
+msgid "Weekday (Friday)"
+msgstr ""
+
+msgid "Weekday short (Fri)"
+msgstr ""
+
+msgid "Wi-Fi"
+msgstr ""
+
+msgid "Wi-Fi (changes with status)"
+msgstr ""
+
+msgid "Wi-Fi icon (dynamic)"
+msgstr ""
+
+msgid "Wi-Fi is not enabled."
+msgstr ""
+
+msgid "Save current as preset…"
+msgstr ""
+
+msgid "Enter preset name"
+msgstr ""
+
+msgid "Please enter a name for the preset."
+msgstr ""
+
+msgid "Preset '%1' saved."
+msgstr ""
+
+msgid "Open presets folder"
+msgstr ""
+
+msgid "Preset files are stored in:\n%1\n\nCopy .lua files here to import presets from other users."
+msgstr ""
+
+msgid "Preset '%1' updated."
+msgstr ""
+
+msgid "Overwrite preset '%1' with current settings?"
+msgstr ""
+
+msgid "Delete preset '%1'? This cannot be undone."
+msgstr ""
+
+msgid "Preset '%1' deleted."
+msgstr ""
+
+msgid "Enter new preset name"
+msgstr ""
+
+msgid "Preset renamed to '%1'."
+msgstr ""
+
+msgid "What would you like to do with preset '%1'?"
+msgstr ""
+
+msgid "Failed to load preset '%1':\n%2"
+msgstr ""

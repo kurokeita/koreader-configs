@@ -1,0 +1,834 @@
+# Bookends — KOReader Plugin
+# Deutsch translation
+msgid ""
+msgstr ""
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgid "12-hour clock"
+msgstr "12-Stunden-Uhr"
+
+msgid "24-hour clock"
+msgstr "24-Stunden-Uhr"
+
+msgid "Add line"
+msgstr "Zeile hinzufügen"
+
+msgid "Adjust / contrast"
+msgstr "Anpassen / Kontrast"
+
+msgid "Adjust margins"
+msgstr "Ränder anpassen"
+
+msgid "All"
+msgstr "Alle"
+
+msgid "All pg"
+msgstr "Alle S."
+
+msgid "Anchor"
+msgstr "Anker"
+
+msgid "Arrow down"
+msgstr "Pfeil unten"
+
+msgid "Arrow left"
+msgstr "Pfeil links"
+
+msgid "Arrow left to bar"
+msgstr "Pfeil links zu Strich"
+
+msgid "Arrow left with tail"
+msgstr "Pfeil links mit Schweif"
+
+msgid "Arrow right"
+msgstr "Pfeil rechts"
+
+msgid "Arrow right to bar"
+msgstr "Pfeil rechts zu Strich"
+
+msgid "Arrow right with tail"
+msgstr "Pfeil rechts mit Schweif"
+
+msgid "Arrows"
+msgstr "Pfeile"
+
+msgid "Arrows left-right"
+msgstr "Pfeile links-rechts"
+
+msgid "Arrow up"
+msgstr "Pfeil oben"
+
+msgid "Author(s)"
+msgstr "Autor(en)"
+
+msgid "Bar"
+msgstr "Balken"
+
+msgid "Bar chart"
+msgstr "Balkendiagramm"
+
+msgid "Bar thickness (px)"
+msgstr "Balkenstärke (px)"
+
+msgid "Battery (changes with level)"
+msgstr "Batterie (ändert sich mit Ladestand)"
+
+msgid "Battery icon (dynamic)"
+msgstr "Batterie-Symbol (dynamisch)"
+
+msgid "Battery level"
+msgstr "Ladestand"
+
+msgid "Bold"
+msgstr "Fett"
+
+msgid "Bold italic"
+msgstr "Fett Kursiv"
+
+msgid "book"
+msgstr "buch"
+
+msgid "Book"
+msgstr "Buch"
+
+msgid "Book+"
+msgstr "Buch+"
+
+msgid "Book++"
+msgstr "Buch++"
+
+msgid "Book+++"
+msgstr "Buch+++"
+
+msgid "Bookends"
+msgstr "Bookends"
+
+msgid "Bookends is up to date."
+msgstr "Bookends ist aktuell."
+
+msgid "Bookends updated to v"
+msgstr "Bookends aktualisiert auf v"
+
+msgid "Book language"
+msgstr "Buchsprache"
+
+msgid "Bookmark (filled)"
+msgstr "Lesezeichen (gefüllt)"
+
+msgid "Bookmark (outline)"
+msgstr "Lesezeichen (Umriss)"
+
+msgid "Book percentage read"
+msgstr "Buch gelesen (%)"
+
+msgid "Border"
+msgstr "Rahmen"
+
+msgid "Bordered"
+msgstr "Umrandet"
+
+msgid "bottom"
+msgstr "unten"
+
+msgid "Bottom"
+msgstr "Unten"
+
+msgid "Bottom-center"
+msgstr "Unten-Mitte"
+
+msgid "Bottom-left"
+msgstr "Unten-links"
+
+msgid "Bottom-right"
+msgstr "Unten-rechts"
+
+msgid "Built-in presets"
+msgstr "Eingebaute Voreinstellungen"
+
+msgid "Bullet"
+msgstr "Aufzählungspunkt"
+
+msgid "Calendar"
+msgstr "Kalender"
+
+msgid "Calendar (checked)"
+msgstr "Kalender (abgehakt)"
+
+msgid "Cancel"
+msgstr "Abbrechen"
+
+msgid "Ch."
+msgstr "Kap."
+
+msgid "chapter"
+msgstr "kapitel"
+
+msgid "Chapter"
+msgstr "Kapitel"
+
+msgid "Chapter percentage read"
+msgstr "Kapitel gelesen (%)"
+
+msgid "Chapter ticks: off"
+msgstr "Kapitelmarkierungen: Aus"
+
+msgid "Chapter ticks: all levels"
+msgstr "Kapitelmarkierungen: Alle Ebenen"
+
+msgid "Chapter ticks: top 2 levels"
+msgstr "Kapitelmarkierungen: Oberste 2 Ebenen"
+
+msgid "Chapter ticks: top level"
+msgstr "Kapitelmarkierungen: Oberste Ebene"
+
+msgid "Chapter title"
+msgstr "Kapiteltitel"
+
+msgid "Check"
+msgstr "Prüfen"
+
+msgid "Check for updates"
+msgstr "Nach Updates suchen"
+
+msgid "Checking for updates..."
+msgstr "Suche nach Updates..."
+
+msgid "Check mark"
+msgstr "Häkchen"
+
+msgid "Classic alternating"
+msgstr "Klassisch wechselnd"
+
+msgid "Clock"
+msgstr "Uhr"
+
+msgid "Close"
+msgstr "Schließen"
+
+msgid "Cloud"
+msgstr "Wolke"
+
+msgid "Club"
+msgstr "Kreuz"
+
+msgid "Cog"
+msgstr "Zahnrad"
+
+msgid "Copyright"
+msgstr "Copyright"
+
+msgid "Could not check for updates."
+msgstr "Update-Prüfung fehlgeschlagen."
+
+msgid "Could not save download."
+msgstr "Download konnte nicht gespeichert werden."
+
+msgid "Cross"
+msgstr "Kreuz"
+
+msgid "Cross mark"
+msgstr "Kreuzzeichen"
+
+msgid "Current page number"
+msgstr "Aktuelle Seitenzahl"
+
+msgid "Custom presets"
+msgstr "Eigene Voreinstellungen"
+
+msgid "Cycle bookends preset"
+msgstr "Bookends-Voreinstellung wechseln"
+
+msgid "Dagger"
+msgstr "Dolch"
+
+msgid "Date long (28 March 2026)"
+msgstr "Datum lang (28. März 2026)"
+
+msgid "Date numeric (28/03/2026)"
+msgstr "Datum numerisch (28.03.2026)"
+
+msgid "Date short (28 Mar)"
+msgstr "Datum kurz (28. Mär)"
+
+msgid "Default font"
+msgstr "Standardschrift"
+
+msgid "Delete"
+msgstr "Löschen"
+
+msgid "Device"
+msgstr "Gerät"
+
+msgid "Diamond"
+msgstr "Raute"
+
+msgid "Diamond suit"
+msgstr "Karo"
+
+msgid "Division slash"
+msgstr "Divisionsschrägstrich"
+
+msgid "Document format (EPUB, PDF, etc.)"
+msgstr "Dokumentformat (EPUB, PDF, usw.)"
+
+msgid "Document title"
+msgstr "Dokumenttitel"
+
+msgid "Double angle left"
+msgstr "Doppelwinkel links"
+
+msgid "Double angle right"
+msgstr "Doppelwinkel rechts"
+
+msgid "Double arrows right"
+msgstr "Doppelpfeil rechts"
+
+msgid "Double dagger"
+msgstr "Doppeldolch"
+
+msgid "Double slash"
+msgstr "Doppelschrägstrich"
+
+msgid "Download failed."
+msgstr "Download fehlgeschlagen."
+
+msgid "Downloading update..."
+msgstr "Update wird heruntergeladen..."
+
+msgid "Dynamic"
+msgstr "Dynamisch"
+
+msgid "Edge"
+msgstr "Rand"
+
+msgid "Em dash"
+msgstr "Gedankenstrich"
+
+msgid "Enable"
+msgstr "Aktivieren"
+
+msgid "Enable bookends"
+msgstr "Bookends aktivieren"
+
+msgid "Enabled"
+msgstr "Aktiviert"
+
+msgid "En dash"
+msgstr "Halbgeviertstrich"
+
+msgid "Even"
+msgstr "Gerade"
+
+msgid "Even pg"
+msgstr "Gerade S."
+
+msgid "Extra bottom margin"
+msgstr "Zusätzlicher unterer Rand"
+
+msgid "Extra left margin"
+msgstr "Zusätzlicher linker Rand"
+
+msgid "Extra right margin"
+msgstr "Zusätzlicher rechter Rand"
+
+msgid "Extra top margin"
+msgstr "Zusätzlicher oberer Rand"
+
+msgid "Eye"
+msgstr "Auge"
+
+msgid "Eye (hidden)"
+msgstr "Auge (verborgen)"
+
+msgid "File name"
+msgstr "Dateiname"
+
+msgid "Fill: bottom to top"
+msgstr "Füllung: Unten nach oben"
+
+msgid "Fill: left to right"
+msgstr "Füllung: Links nach rechts"
+
+msgid "Fill: right to left"
+msgstr "Füllung: Rechts nach links"
+
+msgid "Fill: top to bottom"
+msgstr "Füllung: Oben nach unten"
+
+msgid "Flag"
+msgstr "Flagge"
+
+msgid "Font"
+msgstr "Schrift"
+
+msgid "Font..."
+msgstr "Schrift..."
+
+msgid "Font scale"
+msgstr "Schriftskalierung"
+
+msgid "Font size for line"
+msgstr "Schriftgröße für Zeile"
+
+msgid "Fraction slash"
+msgstr "Bruchschrägstrich"
+
+msgid "Frontlight brightness"
+msgstr "Frontlicht-Helligkeit"
+
+msgid "Frontlight warmth"
+msgstr "Frontlicht-Wärme"
+
+msgid "Full width progress bars"
+msgstr "Fortschrittsbalken volle Breite"
+
+msgid "HDD / disk"
+msgstr "HDD / Festplatte"
+
+msgid "Heart"
+msgstr "Herz"
+
+msgid "High voltage"
+msgstr "Hochspannung"
+
+msgid "Horizontal ellipsis"
+msgstr "Horizontale Ellipse"
+
+msgid "Hot springs / warmth"
+msgstr "Thermalquelle / Wärme"
+
+msgid "Hourglass"
+msgstr "Sanduhr"
+
+msgid "Hourglass (filled)"
+msgstr "Sanduhr (gefüllt)"
+
+msgid "Symbols"
+msgstr "Symbole"
+
+msgid "Infinity"
+msgstr "Unendlichkeit"
+
+msgid "Info"
+msgstr "Info"
+
+msgid "Inline progress bars can be added via the line editor"
+msgstr "Inline-Fortschrittsbalken können über den Zeileneditor hinzugefügt werden"
+
+msgid "Insert symbol"
+msgstr "Symbol einfügen"
+
+msgid "Insert token"
+msgstr "Token einfügen"
+
+msgid "Installation failed: "
+msgstr "Installation fehlgeschlagen: "
+
+msgid "Installed: "
+msgstr "Installiert: "
+
+msgid "Italic"
+msgstr "Kursiv"
+
+msgid "Latest: "
+msgstr "Aktuellste: "
+
+msgid "left"
+msgstr "links"
+
+msgid "Left"
+msgstr "Links"
+
+msgid "Lightbulb"
+msgstr "Glühbirne"
+
+msgid "Lightning bolt"
+msgstr "Blitz"
+
+msgid "Line"
+msgstr "Zeile"
+
+msgid "Line %1: %2"
+msgstr "Zeile %1: %2"
+
+msgid "long press lines to manage"
+msgstr "Zeilen lang drücken zum Verwalten"
+
+msgid "Long press presets to edit"
+msgstr "Voreinstellungen lang drücken zum Bearbeiten"
+
+msgid "Memory chip"
+msgstr "Speicherchip"
+
+msgid "Metadata"
+msgstr "Metadaten"
+
+msgid "Metro"
+msgstr "Metro"
+
+msgid "Middle dot"
+msgstr "Mittelpunkt"
+
+msgid "Mobile"
+msgstr "Mobiltelefon"
+
+msgid "Moon"
+msgstr "Mond"
+
+msgid "Move down"
+msgstr "Nach unten"
+
+msgid "Move to"
+msgstr "Verschieben nach"
+
+msgid "Move up"
+msgstr "Nach oben"
+
+msgid "No download available for this release."
+msgstr "Kein Download für diese Version verfügbar."
+
+msgid "Number of bookmarks"
+msgstr "Anzahl Lesezeichen"
+
+msgid "Number of highlights"
+msgstr "Anzahl Markierungen"
+
+msgid "Number of notes"
+msgstr "Anzahl Notizen"
+
+msgid "Numero"
+msgstr "Numero"
+
+msgid "Odd"
+msgstr "Ungerade"
+
+msgid "Odd pg"
+msgstr "Ungerade S."
+
+msgid "off"
+msgstr "aus"
+
+msgid "on"
+msgstr "ein"
+
+msgid "Page / progress"
+msgstr "Seite / Fortschritt"
+
+msgid "Pages left in book"
+msgstr "Verbleibende Seiten im Buch"
+
+msgid "Pages left in chapter"
+msgstr "Verbleibende Seiten im Kapitel"
+
+msgid "Pages read in chapter"
+msgstr "Gelesene Seiten im Kapitel"
+
+msgid "Paper aeroplane"
+msgstr "Papierflieger"
+
+msgid "Pilcrow / paragraph"
+msgstr "Pilcrow / Absatz"
+
+msgid "Position"
+msgstr "Position"
+
+msgid "Power"
+msgstr "Ein/Aus"
+
+msgid "Preset '%1' loaded."
+msgstr "Voreinstellung '%1' geladen."
+
+msgid "Presets"
+msgstr "Voreinstellungen"
+
+msgid "Prioritise left/right and truncate long center text"
+msgstr "Links/Rechts bevorzugen und langen Mitteltext kürzen"
+
+msgid "+ Progress bar"
+msgstr "+ Fortschrittsbalken"
+
+msgid "- Progress bar"
+msgstr "- Fortschrittsbalken"
+
+msgid "Progress bar (configure type in line editor)"
+msgstr "Fortschrittsbalken (Typ im Zeileneditor wählen)"
+
+msgid "Progress bars"
+msgstr "Fortschrittsbalken"
+
+msgid "RAM used %"
+msgstr "RAM belegt %"
+
+msgid "Reading"
+msgstr "Lesen"
+
+msgid "Reading speed (pages/hour)"
+msgstr "Lesegeschwindigkeit (Seiten/Stunde)"
+
+msgid "Regular"
+msgstr "Normal"
+
+msgid "Reset"
+msgstr "Zurücksetzen"
+
+msgid "Restart"
+msgstr "Neu starten"
+
+msgid "Restart KOReader now?"
+msgstr "KOReader jetzt neu starten?"
+
+msgid "Rich detail"
+msgstr "Detailreich"
+
+msgid "right"
+msgstr "rechts"
+
+msgid "Right"
+msgstr "Rechts"
+
+msgid "Round"
+msgstr "Rund"
+
+msgid "Rounded"
+msgstr "Abgerundet"
+
+msgid "Save"
+msgstr "Speichern"
+
+msgid "Section sign"
+msgstr "Paragrafzeichen"
+
+msgid "Select font"
+msgstr "Schrift auswählen"
+
+msgid "Separators"
+msgstr "Trennzeichen"
+
+msgid "Series with index"
+msgstr "Reihe mit Index"
+
+msgid "Session pages read"
+msgstr "Sitzung gelesene Seiten"
+
+msgid "Session reading time"
+msgstr "Sitzung Lesezeit"
+
+msgid "Set"
+msgstr "Setzen"
+
+msgid "Set bookends"
+msgstr "Bookends setzen"
+
+msgid "Settings"
+msgstr "Einstellungen"
+
+msgid "SimpleUI status bar"
+msgstr "SimpleUI-Statusleiste"
+
+msgid "Single angle left"
+msgstr "Einzelwinkel links"
+
+msgid "Single angle right"
+msgstr "Einzelwinkel rechts"
+
+msgid "Size"
+msgstr "Größe"
+
+msgid "Slash"
+msgstr "Schrägstrich"
+
+msgid "Sliders"
+msgstr "Regler"
+
+msgid "Solid"
+msgstr "Voll"
+
+msgid "Spade"
+msgstr "Pik"
+
+msgid "Speed reader"
+msgstr "Schnellleser"
+
+msgid "Star (filled)"
+msgstr "Stern (gefüllt)"
+
+msgid "Star (outline)"
+msgstr "Stern (Umriss)"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Stopwatch"
+msgstr "Stoppuhr"
+
+msgid "Style"
+msgstr "Stil"
+
+msgid "Sun (filled)"
+msgstr "Sonne (gefüllt)"
+
+msgid "Sun (outline)"
+msgstr "Sonne (Umriss)"
+
+msgid "Symbols"
+msgstr "Symbole"
+
+msgid "Tachometer"
+msgstr "Tachometer"
+
+msgid "Thickness"
+msgstr "Stärke"
+
+msgid "Tilde"
+msgstr "Tilde"
+
+msgid "Time"
+msgstr "Zeit"
+
+msgid "Time / date"
+msgstr "Zeit / Datum"
+
+msgid "Time left in book"
+msgstr "Verbleibende Zeit im Buch"
+
+msgid "Time left in chapter"
+msgstr "Verbleibende Zeit im Kapitel"
+
+msgid "Toggle bookends"
+msgstr "Bookends umschalten"
+
+msgid "Tokens"
+msgstr "Token"
+
+msgid "top"
+msgstr "oben"
+
+msgid "Top"
+msgstr "Oben"
+
+msgid "Top-center"
+msgstr "Oben-Mitte"
+
+msgid "Top-left"
+msgstr "Oben-links"
+
+msgid "Top-right"
+msgstr "Oben-rechts"
+
+msgid "Total pages"
+msgstr "Seiten gesamt"
+
+msgid "Total pages in chapter"
+msgstr "Seiten im Kapitel gesamt"
+
+msgid "Total reading time for book"
+msgstr "Gesamte Lesezeit für Buch"
+
+msgid "Triangle down"
+msgstr "Dreieck unten"
+
+msgid "Triangle left"
+msgstr "Dreieck links"
+
+msgid "Triangle right"
+msgstr "Dreieck rechts"
+
+msgid "Triangle up"
+msgstr "Dreieck oben"
+
+msgid "Triangular bullet"
+msgstr "Dreieckiger Aufzählungspunkt"
+
+msgid "Truncation gap between regions"
+msgstr "Kürzungsabstand zwischen Bereichen"
+
+msgid "Truncation gap between regions (px)"
+msgstr "Kürzungsabstand zwischen Bereichen (px)"
+
+msgid "Type"
+msgstr "Typ"
+
+msgid "Update and restart"
+msgstr "Aktualisieren und neu starten"
+
+msgid "Update available!"
+msgstr "Update verfügbar!"
+
+msgid "Version: "
+msgstr "Version: "
+
+msgid "Vertical"
+msgstr "Vertikal"
+
+msgid "Vertical bar"
+msgstr "Senkrechter Strich"
+
+msgid "Vertical ellipsis"
+msgstr "Vertikale Ellipse"
+
+msgid "Warning"
+msgstr "Warnung"
+
+msgid "Watch"
+msgstr "Uhr"
+
+msgid "Weekday (Friday)"
+msgstr "Wochentag (Freitag)"
+
+msgid "Weekday short (Fri)"
+msgstr "Wochentag kurz (Fr)"
+
+msgid "Wi-Fi"
+msgstr "WLAN"
+
+msgid "Wi-Fi (changes with status)"
+msgstr "WLAN (ändert sich mit Status)"
+
+msgid "Wi-Fi icon (dynamic)"
+msgstr "WLAN-Symbol (dynamisch)"
+
+msgid "Wi-Fi is not enabled."
+msgstr "WLAN ist nicht aktiviert."
+
+msgid "black"
+msgstr "schwarz"
+
+msgid "default"
+msgstr "Standard"
+
+msgid "Invert tick color on read portion"
+msgstr "Markierungsfarbe auf gelesenem Teil invertieren"
+
+msgid "Metro track color"
+msgstr "Metro-Linienfarbe"
+
+msgid "Metro track color (% black)"
+msgstr "Metro-Linienfarbe (% schwarz)"
+
+msgid "Progress bar colors"
+msgstr "Farben der Fortschrittsbalken"
+
+msgid "Read color"
+msgstr "Gelesene Farbe"
+
+msgid "Read color (% black)"
+msgstr "Gelesene Farbe (% schwarz)"
+
+msgid "Reset all to defaults"
+msgstr "Alles zurücksetzen"
+
+msgid "Tick color"
+msgstr "Markierungsfarbe"
+
+msgid "Tick color (% black)"
+msgstr "Markierungsfarbe (% schwarz)"
+
+msgid "Unread color"
+msgstr "Ungelesene Farbe"
+
+msgid "Unread color (% black)"
+msgstr "Ungelesene Farbe (% schwarz)"

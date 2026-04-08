@@ -1,0 +1,157 @@
+msgid ""
+msgstr ""
+"projecttitle/ro_MD/>\n"
+"Language: ro_MD\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n == 0 || n != 1 && n % "
+"100 >= 1 && n % 100 <= 19) ? 1 : 2);\n"
+
+# covermenu.lua
+msgid "Library"
+msgstr "Bibliotecă"
+
+# listmenu.lua
+msgid "Folders"
+msgstr "Dosare"
+
+msgid "Book"
+msgstr "Carte"
+
+# main.lua
+msgid "Project: Title"
+msgstr "Project: Title"
+
+msgid "Decrease Items Per Page"
+msgstr "Micșorează elementele pe pagină"
+
+msgid "Increase Items Per Page"
+msgstr "Mărește elementele pe pagină"
+
+msgid "Cover List"
+msgstr "Coperte afișate ca Listă"
+
+msgid "Cover Grid"
+msgstr "Coperte afișate ca Grilă"
+
+msgid "Details List"
+msgstr "Coperte afișate ca Listă cu detalii"
+
+msgid "Filenames List"
+msgstr "Coperte afișate ca Listă cu nume fișiere"
+
+msgid "Project: Title settings"
+msgstr "Setări Project: Title"
+
+msgid "Portrait cover grid mode"
+msgstr "Mod Portret, grilă de coperte"
+
+msgid "Landscape cover grid mode"
+msgstr "Mod Peisaj, grilă coperte"
+
+msgid "List modes"
+msgstr "Mod Listă"
+
+msgid "Folder display"
+msgstr "Afișare dosare"
+
+msgid "Auto-generate cover images from books"
+msgstr "Generează automat imagini de copertă din cărți"
+
+msgid "Show auto-generated cover images as a stack"
+msgstr "Afișează ca stivă coperțile generate automat"
+
+msgid "Overlay name and details in cover grid"
+msgstr "Suprapune nume și detalii în grila de coperte"
+
+msgid "Book display"
+msgstr "Afișare cărți"
+
+msgid "Show series"
+msgstr "Afișează seriile"
+
+msgid "Show pages read instead of progress %"
+msgstr "Afișează pagini citite în loc de progres în %"
+
+msgid "Show file info instead of pages or progress %"
+msgstr "Afișează info fișier în loc de pagini sau progres în %"
+
+msgid "Show progress % instead of progress bars"
+msgstr "Afișează progresul în % în loc de bare de progres"
+
+msgid "Always show maximum length progress bars"
+msgstr "Afișează mereu bare de progres la lungime maximă"
+
+msgid "Show calibre tags/keywords"
+msgstr "Afișează etichete/cuvinte-cheie din Calibre"
+
+msgid "Use custom book status screen"
+msgstr "Folosește ecran personalizat pentru starea cărții"
+
+msgid "Footer"
+msgstr "Subsolul paginii"
+
+msgid "Replace folder name with device info"
+msgstr "Înlocuiește numele dosarului cu info a dispozitivului"
+
+msgid "Show page controls in left corner"
+msgstr "Afișează controalele paginii în colțul stâng"
+
+msgid "Library mode"
+msgstr "Mod bibliotecă"
+
+msgid "Show opened books first"
+msgstr "Afișează mai întâi cărțile deschise"
+
+msgid "Cache database"
+msgstr "Bază de date cache"
+
+msgid "Scan home folder for new books automatically"
+msgstr "Scanează dosarul principal automat pentru cărți noi"
+
+msgid "Empty cache"
+msgstr "Golește cache"
+
+msgid "Are you sure that you want to delete cover and metadata cache?"
+msgstr "Sigur doriți să ștergeți cache-ul de coperte și metadate?"
+
+msgid "Cache emptied."
+msgstr "Cache golit."
+
+msgid "Show last item indicator on touchscreen devices"
+msgstr "Arată Indicator ultim-element pe dispozitive touchscreen"
+
+# bookinfomanager.lua
+msgid ""
+"This will extract metadata and cover images from books in the current "
+"directory.\n"
+"Once extraction has started, you can abort at any moment by tapping on the "
+"screen.\n"
+"\n"
+"This extraction may take time and use some battery power: you may wish to "
+"keep your device plugged in."
+msgstr "Aceasta va extrage metadate și imagini de copertă din cărțile "
+"din dosarul curent.\n"
+"Odată ce extracția a început, puteți opri oricând apăsând pe ecran.\n"
+"\n"
+"Această extracție poate dura și consuma baterie: "
+"recomandăm să mențineți dispozitivul conectat la priză."
+
+msgid "Found %1 books.\nLooking for new books…"
+msgstr "S-au găsit %1 cărți.\nSe caută cărți noi…"
+
+msgid "No new books found."
+msgstr "Nu s-au găsit cărți noi."
+
+msgid "Do you want to stop?"
+msgstr "Doriți să opriți?"
+
+msgid "Continue Indexing"
+msgstr "Continuă indexarea"
+
+msgid "Stop Indexing"
+msgstr "Oprește indexarea"
+
+msgid "Tap anywhere to stop"
+msgstr "Apăsați oriunde pentru a opri"
