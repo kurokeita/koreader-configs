@@ -14,7 +14,7 @@ require_var RELEASE_TAG
 require_var REPO_ROOT
 require_var OUT_DIR
 
-for cmd in gh jq unzip zip shasum; do
+for cmd in gh jq unzip zip sha256sum; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
     echo "error: required tool not installed: $cmd" >&2
     exit 1
@@ -99,7 +99,7 @@ cp "$REPO_ROOT/INSTALL.md" "$STAGING/INSTALL.txt"
 )
 (
   cd "$OUT_DIR"
-  shasum -a 256 "$BUNDLE_NAME.zip" > "$BUNDLE_NAME.zip.sha256"
+  sha256sum "$BUNDLE_NAME.zip" > "$BUNDLE_NAME.zip.sha256"
 )
 
 echo "$BUNDLE_NAME"
