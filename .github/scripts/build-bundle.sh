@@ -21,6 +21,9 @@ for cmd in gh jq unzip zip shasum; do
   fi
 done
 
+SCRATCH="$(mktemp -d)"
+trap 'rm -rf "$SCRATCH"' EXIT
+
 KO_VER="$(echo "$TARGET_JSON" | jq -r '.koreader')"
 CODENAME="$(echo "$TARGET_JSON" | jq -r '.codename')"
 PLUGIN_COUNT="$(echo "$TARGET_JSON" | jq '.plugins | length')"
@@ -41,14 +44,18 @@ mkdir -p "$STAGING/plugins"
 cp -R "$REPO_ROOT/icons" "$STAGING/icons"
 cp -R "$REPO_ROOT/patches" "$STAGING/patches"
 
+{
+  echo "koreader-configs $RELEASE_TAG for KOReader $KO_VER ($CODENAME)"
+} > "$STAGING/VERSIONS.txt"
+
 i=0
 while [ "$i" -lt "$PLUGIN_COUNT" ]; do
   repo="$(echo "$TARGET_JSON" | jq -r ".plugins[$i].repo")"
   tag="$(echo "$TARGET_JSON" | jq -r ".plugins[$i].tag")"
   install_dir="$(echo "$TARGET_JSON" | jq -r ".plugins[$i].install_dir")"
 
-  echo "==> fetching $repo @ $tag"
-  tmp="$(mktemp -d)"
+  echo "==> fetching $repo @ $tag" >&2
+  tmp="$(mktemp -d "$SCRATCH/XXXXXX")"
   gh release download "$tag" --repo "$repo" --pattern '*.zip' --dir "$tmp"
 
   zips=( "$tmp"/*.zip )
@@ -57,7 +64,7 @@ while [ "$i" -lt "$PLUGIN_COUNT" ]; do
     exit 1
   fi
 
-  extract="$(mktemp -d)"
+  extract="$(mktemp -d "$SCRATCH/XXXXXX")"
   unzip -q "${zips[0]}" -d "$extract"
 
   shopt -s nullglob
@@ -75,22 +82,15 @@ while [ "$i" -lt "$PLUGIN_COUNT" ]; do
   fi
 
   mv "$src" "$STAGING/plugins/$install_dir"
-  rm -rf "$tmp" "$extract"
+  echo "${repo}@${tag}" >> "$STAGING/VERSIONS.txt"
 
   i=$((i + 1))
 done
 
-{
-  echo "koreader-configs $RELEASE_TAG for KOReader $KO_VER ($CODENAME)"
-  i=0
-  while [ "$i" -lt "$PLUGIN_COUNT" ]; do
-    repo="$(echo "$TARGET_JSON" | jq -r ".plugins[$i].repo")"
-    tag="$(echo "$TARGET_JSON" | jq -r ".plugins[$i].tag")"
-    echo "${repo}@${tag}"
-    i=$((i + 1))
-  done
-} > "$STAGING/VERSIONS.txt"
-
+if [ ! -f "$REPO_ROOT/INSTALL.md" ]; then
+  echo "error: $REPO_ROOT/INSTALL.md not found" >&2
+  exit 1
+fi
 cp "$REPO_ROOT/INSTALL.md" "$STAGING/INSTALL.txt"
 
 (
