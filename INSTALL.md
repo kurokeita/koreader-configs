@@ -19,8 +19,8 @@ recording the exact plugin and KOReader versions it targets.
    - `patches/` → `koreader/patches/`
    - `plugins/` → `koreader/plugins/` (each `*.koplugin/` folder goes
      in whole)
-   - `icons/` → `koreader/resources/icons/mdlight/` (or whichever icon
-     set your theme uses)
+   - `icons/` → `koreader/resources/icons/mdlight/` (these icons are
+     overrides for the `mdlight` set specifically)
 3. Restart KOReader.
 
 If you are upgrading and want to revert, delete the files you copied
