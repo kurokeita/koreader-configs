@@ -27,16 +27,22 @@ jobs:
       upload_mode: ${{ steps.resolve.outputs.upload_mode }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Install yq
+        env:
+          YQ_VERSION: v4.44.3
+          YQ_SHA256: a2c097180dd884a8d50c956ee16a9cec070f30a7947cf4ebf87d5f36213e9ed7
         run: |
           set -euo pipefail
-          sudo wget -qO /usr/local/bin/yq \
-            https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
+          tmp="$(mktemp)"
+          wget -qO "$tmp" \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          echo "${YQ_SHA256}  ${tmp}" | sha256sum -c -
+          sudo install -m 0755 "$tmp" /usr/local/bin/yq
+          rm -f "$tmp"
           yq --version
 
       - name: Resolve tag and upload mode
@@ -71,7 +77,10 @@ jobs:
               ;;
           esac
           if [ -z "$tag" ]; then
-            echo "error: could not resolve a tag to build" >&2
+            echo "error: workflow_dispatch could not resolve a tag" >&2
+            echo "       no 'tag' input was provided and the repo has no tags." >&2
+            echo "       Rerun with --field tag=<ref> (a tag, branch, or commit SHA)" >&2
+            echo "       or create a tag with 'git tag vX.Y.Z && git push origin vX.Y.Z'." >&2
             exit 1
           fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
@@ -93,7 +102,7 @@ jobs:
         target: ${{ fromJSON(needs.prepare.outputs.targets) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.prepare.outputs.tag }}
 
@@ -121,7 +130,7 @@ jobs:
         run: |
           set -euo pipefail
           if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release create "$TAG" --generate-notes --title "$TAG" \
+            gh release create "$TAG" --generate-notes --title "$TAG" --draft \
               --repo "$GITHUB_REPOSITORY"
           fi
           gh release upload "$TAG" \
@@ -131,7 +140,7 @@ jobs:
 
       - name: Upload as workflow artifact
         if: needs.prepare.outputs.upload_mode == 'artifact'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.build.outputs.bundle_name }}
           path: |
