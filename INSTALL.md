@@ -1,10 +1,9 @@
 # Install
 
 This bundle contains everything in `koreader-configs` (custom icons,
-userpatches) plus the pinned upstream plugins (`ProjectTitle`,
-`bookends`) built for a specific KOReader version. See `VERSIONS.txt`
-inside this bundle for the exact plugin and KOReader versions it
-targets.
+userpatches), the pinned upstream plugins (`ProjectTitle`, `bookends`)
+built for a specific KOReader version, and a `VERSIONS.txt` file
+recording the exact plugin and KOReader versions it targets.
 
 ## Steps
 
