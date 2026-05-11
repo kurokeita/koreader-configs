@@ -8,8 +8,9 @@ Targets:
   - Project: Title @ joshuacant/ProjectTitle commit 31c6777 (or compatible)
   - KOReader 2026.03 (safe_version 202603000000)
 
-Toggle under: Advanced settings -> Project: Title settings -> Footer
-              -> "Show history & last-document icons"
+Toggle: in the file browser, open the top menu -> first tab (settings)
+        -> Project: Title settings -> Advanced settings -> Footer
+        -> "Show history & last-document icons"
 --]]
 
 local userpatch = require("userpatch")

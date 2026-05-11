@@ -1,0 +1,25 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "runtime.version": "LuaJIT",
+  "runtime.path": [
+    "?.lua",
+    "?/init.lua"
+  ],
+  "workspace.library": [
+    "~/dev/_refs/ProjectTitle/plugins/coverbrowser.koplugin",
+    "~/dev/_refs/koreader/frontend",
+    "~/dev/_refs/koreader/plugins/coverbrowser.koplugin"
+  ],
+  "workspace.ignoreDir": [
+    ".git",
+    "icons",
+    "node_modules"
+  ],
+  "workspace.checkThirdParty": false,
+  "diagnostics.globals": [
+    "G_reader_settings"
+  ],
+  "diagnostics.disable": [
+    "lowercase-global"
+  ]
+}
