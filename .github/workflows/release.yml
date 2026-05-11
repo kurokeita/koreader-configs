@@ -31,6 +31,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install yq
+        run: |
+          set -euo pipefail
+          sudo wget -qO /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
+
       - name: Resolve tag and upload mode
         id: resolve
         env:
@@ -112,8 +120,10 @@ jobs:
           OUT_DIR: ${{ runner.temp }}/out
         run: |
           set -euo pipefail
-          gh release create "$TAG" --generate-notes --title "$TAG" \
-            --repo "$GITHUB_REPOSITORY" || true
+          if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$TAG" --generate-notes --title "$TAG" \
+              --repo "$GITHUB_REPOSITORY"
+          fi
           gh release upload "$TAG" \
             "$OUT_DIR/$NAME.zip" \
             "$OUT_DIR/$NAME.zip.sha256" \
