@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -eu
+set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 SCRIPT="$HERE/../parse-manifest.sh"
@@ -37,7 +37,7 @@ test_missing_codename_fails() {
 }
 
 test_missing_codename_message() {
-  bash "$SCRIPT" "$FIXTURES/manifest-missing-codename.yml" 2>&1 >/dev/null \
+  { bash "$SCRIPT" "$FIXTURES/manifest-missing-codename.yml" 2>&1 || true; } \
     | grep -qi 'codename'
 }
 
@@ -49,12 +49,23 @@ test_missing_file_fails() {
   ! bash "$SCRIPT" "$FIXTURES/does-not-exist.yml" >/dev/null 2>&1
 }
 
+test_missing_plugin_tag_fails() {
+  ! bash "$SCRIPT" "$FIXTURES/manifest-missing-plugin-tag.yml" >/dev/null 2>&1
+}
+
+test_missing_plugin_tag_message() {
+  { bash "$SCRIPT" "$FIXTURES/manifest-missing-plugin-tag.yml" 2>&1 || true; } \
+    | grep -qi 'tag'
+}
+
 assert "valid manifest produces expected JSON" test_valid_outputs_json
 assert "valid manifest exits 0" test_valid_exit_zero
 assert "missing codename fails" test_missing_codename_fails
 assert "missing codename message mentions field" test_missing_codename_message
 assert "no plugins fails" test_no_plugins_fails
 assert "missing file fails" test_missing_file_fails
+assert "missing plugin tag fails" test_missing_plugin_tag_fails
+assert "missing plugin tag message mentions field" test_missing_plugin_tag_message
 
 echo
 echo "$PASS passed, $FAIL failed"
