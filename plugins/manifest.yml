@@ -3,8 +3,8 @@ targets:
     codename: Snowflake
     plugins:
       - repo: joshuacant/ProjectTitle
-        tag: 2026.03-v3.7
+        tag: "2026.03-v3.7"
         install_dir: projecttitle.koplugin
       - repo: AndyHazz/bookends.koplugin
-        tag: v5.10.2
+        tag: "v5.10.2"
         install_dir: bookends.koplugin
