@@ -1,0 +1,4 @@
+targets:
+  - koreader: "2026.03"
+    codename: Snowflake
+    plugins: []

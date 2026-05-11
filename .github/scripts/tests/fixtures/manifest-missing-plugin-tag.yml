@@ -1,0 +1,6 @@
+targets:
+  - koreader: "2026.03"
+    codename: Snowflake
+    plugins:
+      - repo: joshuacant/ProjectTitle
+        install_dir: projecttitle.koplugin

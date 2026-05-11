@@ -1,0 +1,140 @@
+name: Release bundle
+
+on:
+  release:
+    types: [published]
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to build (defaults to latest tag)"
+        required: false
+
+concurrency:
+  group: release-${{ github.event.release.tag_name || github.ref_name || inputs.tag }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      targets: ${{ steps.parse.outputs.targets }}
+      tag: ${{ steps.resolve.outputs.tag }}
+      upload_mode: ${{ steps.resolve.outputs.upload_mode }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install yq
+        run: |
+          set -euo pipefail
+          sudo wget -qO /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
+
+      - name: Resolve tag and upload mode
+        id: resolve
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          REF_NAME: ${{ github.ref_name }}
+          DISPATCH_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          case "$EVENT_NAME" in
+            release)
+              tag="$RELEASE_TAG"
+              mode=release
+              ;;
+            push)
+              tag="$REF_NAME"
+              mode=release
+              ;;
+            workflow_dispatch)
+              if [ -n "$DISPATCH_TAG" ]; then
+                tag="$DISPATCH_TAG"
+              else
+                tag="$(git tag --sort=-v:refname | head -n1 || true)"
+              fi
+              mode=artifact
+              ;;
+            *)
+              echo "unsupported event: $EVENT_NAME" >&2
+              exit 1
+              ;;
+          esac
+          if [ -z "$tag" ]; then
+            echo "error: could not resolve a tag to build" >&2
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "upload_mode=$mode" >> "$GITHUB_OUTPUT"
+
+      - name: Parse manifest
+        id: parse
+        run: |
+          set -euo pipefail
+          targets="$(bash .github/scripts/parse-manifest.sh plugins/manifest.yml)"
+          echo "targets=$targets" >> "$GITHUB_OUTPUT"
+
+  build-release:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJSON(needs.prepare.outputs.targets) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+
+      - name: Build bundle
+        id: build
+        env:
+          TARGET_JSON: ${{ toJSON(matrix.target) }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+          REPO_ROOT: ${{ github.workspace }}
+          OUT_DIR: ${{ runner.temp }}/out
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT_DIR"
+          name="$(bash .github/scripts/build-bundle.sh)"
+          echo "bundle_name=$name" >> "$GITHUB_OUTPUT"
+
+      - name: Upload as release asset
+        if: needs.prepare.outputs.upload_mode == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+          NAME: ${{ steps.build.outputs.bundle_name }}
+          OUT_DIR: ${{ runner.temp }}/out
+        run: |
+          set -euo pipefail
+          if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$TAG" --generate-notes --title "$TAG" \
+              --repo "$GITHUB_REPOSITORY"
+          fi
+          gh release upload "$TAG" \
+            "$OUT_DIR/$NAME.zip" \
+            "$OUT_DIR/$NAME.zip.sha256" \
+            --repo "$GITHUB_REPOSITORY" --clobber
+
+      - name: Upload as workflow artifact
+        if: needs.prepare.outputs.upload_mode == 'artifact'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.build.outputs.bundle_name }}
+          path: |
+            ${{ runner.temp }}/out/${{ steps.build.outputs.bundle_name }}.zip
+            ${{ runner.temp }}/out/${{ steps.build.outputs.bundle_name }}.zip.sha256
+          if-no-files-found: error

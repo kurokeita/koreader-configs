@@ -1,0 +1,6 @@
+targets:
+  - koreader: "2026.03"
+    plugins:
+      - repo: joshuacant/ProjectTitle
+        tag: v1.4.2
+        install_dir: projecttitle.koplugin

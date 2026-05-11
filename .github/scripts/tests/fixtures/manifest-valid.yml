@@ -1,0 +1,10 @@
+targets:
+  - koreader: "2026.03"
+    codename: Snowflake
+    plugins:
+      - repo: joshuacant/ProjectTitle
+        tag: v1.4.2
+        install_dir: projecttitle.koplugin
+      - repo: AndyHazz/bookends.koplugin
+        tag: v0.9.1
+        install_dir: bookends.koplugin
