@@ -60,7 +60,7 @@ end
 
 -- Bump when the font-selection logic changes so stale cached picks are
 -- re-extracted instead of reused (pruneCache then removes the old files).
-local CACHE_VERSION = "v3"
+local CACHE_VERSION = "v6"
 
 -- Stable per-book cache filename (independent of which font we pick), so a
 -- second open of the same book reuses the extracted file without reopening the
@@ -170,18 +170,21 @@ local function stripCssComments(css)
     return (css:gsub("/%*.-%*/", " "))
 end
 
--- Ordered families from the *last* body rule, or nil if no body rule.
--- CSS cascades last-wins at equal specificity, so a later `body` declaration
--- overrides an earlier one (e.g. a reset stylesheet's `body { font-family: serif }`
--- followed by the main `body { font-family: "EmbeddedBody" }`). We keep the last
--- rule's list and preserve its order, since the first family in a declaration is
--- the preferred one. Note: CSS is concatenated in archive iteration order, which
--- only approximates true stylesheet/spine cascade order.
-local function bodyFamilyList(css)
+-- Families from the *last* rule matching `selector` that declares a
+-- font-family, preserving declaration order (the first family is preferred).
+-- nil if no such rule. CSS cascades last-wins at equal specificity, so a later
+-- rule overrides an earlier one (e.g. a reset stylesheet's
+-- `body { font-family: serif }` before the main `body { font-family: "X" }`).
+-- Note: CSS is concatenated in archive iteration order, which only approximates
+-- true stylesheet/spine cascade order.
+local function familyListFor(css, selector)
     local result
     for sel, block in css:gmatch("([^{}]+)(%b{})") do
-        local s = sel:lower()
-        if s:find("%f[%a]body%f[%A]") and not s:find("@") then
+        -- The real selector is the text after the last ';': @charset/@namespace
+        -- are ;-terminated and bleed into the next rule's captured selector, so
+        -- stripping them keeps the @-guard from skipping a following body rule.
+        local s = sel:gsub(".*;", ""):lower()
+        if s:find("%f[%a]" .. selector .. "%f[%A]") and not s:find("@") then
             local decl = block:match("font%-family%s*:%s*([^;}]+)")
             if decl then
                 local list = {}
@@ -194,6 +197,17 @@ local function bodyFamilyList(css)
         end
     end
     return result
+end
+
+-- The book's prose font families. `body` sets the document's default reading
+-- font, so prefer it; fall back to `p` then `html` only when a higher-priority
+-- selector declares no font-family. A bare/contextual `p` rule is often a
+-- special style (e.g. centered title paragraphs in `div.jacket p`), so it must
+-- not outrank `body`. Returns nil when none declare a font-family.
+local function bodyFamilyList(css)
+    return familyListFor(css, "body")
+        or familyListFor(css, "p")
+        or familyListFor(css, "html")
 end
 
 -- Map of normalizeFamily(name) -> src url for normal-weight @font-face rules.
@@ -238,6 +252,47 @@ local function resolveBodyFontEntry(css, entries)
     return false
 end
 
+-- Families used for drop caps / decorative initials. These must never be used
+-- for the overlay, even if the size heuristic would otherwise rank them high.
+-- Detected via :first-letter, a `drop`/`dropcap`/`initial` selector, or a
+-- floated rule that also sets a font-family (the classic drop-cap pattern).
+local function dropCapFamilies(css)
+    local set = {}
+    for sel, block in css:gmatch("([^{}]+)(%b{})") do
+        local s = sel:gsub(".*;", ""):lower()
+        if not s:find("@") then
+            local fam = block:match("font%-family%s*:%s*([^;}]+)")
+            if fam then
+                local is_dropcap = s:find("first%-letter")
+                    or s:find("%f[%a]drop%f[%A]")
+                    or s:find("dropcap")
+                    or s:find("initial")
+                    or block:find("float%s*:")
+                if is_dropcap then
+                    local first = fam:gsub(",.*$", ""):gsub("[\"']", "")
+                        :gsub("^%s+", ""):gsub("%s+$", "")
+                    if first ~= "" then set[normalizeFamily(first)] = true end
+                end
+            end
+        end
+    end
+    return set
+end
+
+-- Set of font-file basenames (lowercased) that back a drop-cap family, so they
+-- can be filtered out of the candidate list.
+local function excludedBases(css, entries)
+    local fams = dropCapFamilies(css)
+    if not next(fams) then return {} end
+    local sources = fontFaceSources(css)
+    local bases = {}
+    for fam in pairs(fams) do
+        local url = sources[fam]
+        if url then bases[url:lower():match("([^/\\]+)$")] = true end
+    end
+    return bases
+end
+
 -- Remove the previously injected entry from FontList so the list (and the font
 -- pickers it feeds) does not accumulate stale paths to pruned cache files.
 local function clearInjectedFont()
@@ -250,18 +305,25 @@ local function clearInjectedFont()
     injected_font_path = nil
 end
 
--- Make an extracted font loadable by Font:getFace. Font:getFace can only
--- resolve a face whose path is present in FontList's (session-memoized) list,
--- so we ensure that list is built and then append our path. FreeType loads the
--- file by content, so its extension and location are irrelevant.
-local function registerFontPath(path)
+-- Append a path to FontList so Font:getFace can resolve it (Font:getFace only
+-- finds faces whose path is in FontList's session-memoized list). FreeType
+-- loads by content, so extension/location are irrelevant. No removal tracking:
+-- safe for real system fonts that are already (or should stay) in the list.
+local function ensureInFontList(path)
     FontList:getFontList() -- ensure the base list is built before we append
-    if injected_font_path ~= path then clearInjectedFont() end
-    injected_font_path = path
     for _, p in ipairs(FontList.fontlist) do
         if p == path then return end
     end
     table.insert(FontList.fontlist, path)
+end
+
+-- Register an *extracted* (temporary, per-book cache) font: like
+-- ensureInFontList, but tracks the path so the previous one is removed when a
+-- new book is opened, keeping stale cache paths out of the font pickers.
+local function registerFontPath(path)
+    if injected_font_path ~= path then clearInjectedFont() end
+    injected_font_path = path
+    ensureInFontList(path)
 end
 
 -- Extract the book's body font to the cache and return its absolute path, or
@@ -312,8 +374,19 @@ local function tryExtractBookFont(doc)
         local ok, data = pcall(function() return arc:extractToMemory(p) end)
         if ok and data then css = css .. "\n" .. data end
     end
+    local stripped = stripCssComments(css)
+
+    -- Drop-cap / decorative-initial fonts must never be used; drop them from
+    -- the candidate list before both CSS resolution and the heuristic.
+    local excl = excludedBases(stripped, entries)
+    local cand = {}
+    for _, e in ipairs(entries) do
+        if not excl[e.base] then cand[#cand + 1] = e end
+    end
+    if #cand == 0 then cand = entries end
+
     if css ~= "" then
-        local r = resolveBodyFontEntry(stripCssComments(css), entries)
+        local r = resolveBodyFontEntry(stripped, cand)
         if r == false then
             arc:close()
             clearInjectedFont()
@@ -331,25 +404,50 @@ local function tryExtractBookFont(doc)
                 used[normalizeFamily(name)] = true
             end
         end
-        chosen = pickBodyFont(entries, used)
+        chosen = pickBodyFont(cand, used)
     end
 
     ensureCacheDir()
     local ok = arc:extractToPath(chosen.path, cache_path)
     arc:close()
-    if not ok then
-        logger.info("bookend-unifont: extractToPath failed for", chosen.path)
-        return nil
-    end
+    if not ok then return nil end
 
     registerFontPath(cache_path)
     if not Font:getFace(cache_path, 20) then
-        logger.info("bookend-unifont: Font:getFace rejected", cache_path)
         os.remove(cache_path)
         return nil
     end
     pruneCache(cache_path)
     return cache_path
+end
+
+-- The font KOReader uses to render this book (its reading font), resolved to a
+-- file path Bookends can load. Used as the fallback when the book has no usable
+-- embedded body font, so the overlay mirrors the book's text rather than
+-- Bookends' own font.
+local cre_engine -- delayed init
+local function readingFontPath(plugin)
+    local doc = plugin.ui and plugin.ui.document
+    if not doc or not doc.getFontFace then return nil end
+    local ok, face = pcall(function() return doc:getFontFace() end)
+    if not ok or not face or face == "" then
+        face = (plugin.ui.font and plugin.ui.font.font_face)
+            or G_reader_settings:readSetting("cre_font")
+    end
+    if not face or face == "" then return nil end
+    if not cre_engine then
+        local ok2, eng = pcall(function()
+            return require("document/credocument"):engineInit()
+        end)
+        if not ok2 then return nil end
+        cre_engine = eng
+    end
+    local fn = cre_engine.getFontFaceFilenameAndFaceIndex(face)
+        or cre_engine.getFontFaceFilenameAndFaceIndex(face, nil, true)
+    if not fn then return nil end
+    ensureInFontList(fn)
+    if Font:getFace(fn, 20) then return fn end
+    return nil
 end
 
 -- Recompute active_font_path from settings + current document, and repaint
@@ -364,8 +462,14 @@ local function computeActiveFont(plugin)
             if not ok then
                 logger.warn("bookend-unifont: extraction error:", result)
             end
-            new_path = G_reader_settings:readSetting(FALLBACK_KEY) -- may be nil
+            clearInjectedFont() -- drop any stale extracted-font injection
+            -- No embedded body font: an explicit fallback font wins, otherwise
+            -- mirror the book's KOReader reading font.
+            new_path = G_reader_settings:readSetting(FALLBACK_KEY)
+                or readingFontPath(plugin)
         end
+    else
+        clearInjectedFont()
     end
     if new_path ~= active_font_path then
         active_font_path = new_path
@@ -386,7 +490,7 @@ local function buildUnifontItems(plugin)
     return {
         {
             text = _("Use book's embedded font"),
-            help_text = _("Render Bookends overlays in the font embedded in the current book (EPUB and other zip-based formats). Falls back to the chosen fallback font, or Bookends' own font, when the book has no embedded font."),
+            help_text = _("Render Bookends overlays in the font embedded in the current book (EPUB and other zip-based formats). When the book has no embedded font, falls back to the chosen fallback font, or the book's KOReader reading font."),
             checked_func = function()
                 return G_reader_settings:isTrue(ENABLED_KEY)
             end,
@@ -406,7 +510,7 @@ local function buildUnifontItems(plugin)
             sub_item_table_func = function()
                 return {
                     {
-                        text = _("None (use Bookends' own font)"),
+                        text = _("None (use the book's reading font)"),
                         checked_func = function()
                             return G_reader_settings:readSetting(FALLBACK_KEY) == nil
                         end,
