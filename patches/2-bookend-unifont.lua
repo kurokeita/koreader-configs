@@ -57,14 +57,19 @@ local function isZipBased(file)
     return false
 end
 
+-- Bump when the font-selection logic changes so stale cached picks are
+-- re-extracted instead of reused (pruneCache then removes the old files).
+local CACHE_VERSION = "v2"
+
 -- Stable per-book cache filename (independent of which font we pick), so a
 -- second open of the same book reuses the extracted file without reopening the
--- archive. Includes file size to disambiguate same-named books.
+-- archive. Includes file size to disambiguate same-named books, and a version
+-- token so picker changes invalidate old extractions.
 local function cacheKey(file)
     local attr = lfs.attributes(file)
     local size = attr and attr.size or 0
     local flat = file:gsub("[^%w]", "_")
-    return flat:sub(-60) .. "_" .. tostring(size) .. ".font"
+    return CACHE_VERSION .. "_" .. flat:sub(-60) .. "_" .. tostring(size) .. ".font"
 end
 
 local function ensureCacheDir()
