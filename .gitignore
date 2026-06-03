@@ -2,3 +2,5 @@ node_modules/
 .claude/settings.local.json
 .luarc.json
 _ref/
+.remember/
+docs/superpowers/
