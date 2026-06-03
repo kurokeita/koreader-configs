@@ -210,7 +210,23 @@ end
 local function patchBookends(plugin)
     if plugin._bookend_unifont_applied then return end
     plugin._bookend_unifont_applied = true
-    -- wrapping added in Task 5; menu added in Task 6
+
+    -- Render-time substitution: when an active font is set, swap it in as the
+    -- face name and delegate to the original. resolveLineConfig itself resolves
+    -- @family: sentinels and variant lookups, so both an absolute path and a
+    -- face sentinel (from the fallback picker) work unchanged. Never writes
+    -- Bookends' stored settings.
+    local orig_resolveLineConfig = plugin.resolveLineConfig
+    plugin.resolveLineConfig = function(self, face_name, font_size, style)
+        if active_font_path then
+            return orig_resolveLineConfig(self, active_font_path, font_size, style)
+        end
+        return orig_resolveLineConfig(self, face_name, font_size, style)
+    end
+
+    -- The reader plugin instance is created with the document already loaded,
+    -- so compute the active font now.
+    computeActiveFont(plugin)
 end
 
 userpatch.registerPatchPluginFunc("bookends", patchBookends)
