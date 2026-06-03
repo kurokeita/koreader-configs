@@ -6,12 +6,14 @@
     "?/init.lua"
   ],
   "workspace.library": [
-    "~/dev/_refs/ProjectTitle/plugins/coverbrowser.koplugin",
-    "~/dev/_refs/koreader/frontend",
-    "~/dev/_refs/koreader/plugins/coverbrowser.koplugin"
+    "_ref/koreader/frontend",
+    "_ref/koreader/plugins/coverbrowser.koplugin",
+    "_ref/ProjectTitle/plugins/coverbrowser.koplugin",
+    "_ref/bookends.koplugin"
   ],
   "workspace.ignoreDir": [
     ".git",
+    "_ref",
     "icons",
     "node_modules"
   ],
