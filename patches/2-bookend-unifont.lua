@@ -31,6 +31,8 @@ local util        = require("util")
 local logger      = require("logger")
 local _           = require("gettext")
 
+logger.info("bookend-unifont: patch file loaded")
+
 local ENABLED_KEY  = "bookend_unifont_enabled"
 local FALLBACK_KEY = "bookend_unifont_fallback"
 local CACHE_DIR    = DataStorage:getDataDir() .. "/cache/bookend-unifont/"
@@ -201,6 +203,8 @@ local function computeActiveFont(plugin)
             new_path = G_reader_settings:readSetting(FALLBACK_KEY) -- may be nil
         end
     end
+    logger.info("bookend-unifont: enabled=", G_reader_settings:isTrue(ENABLED_KEY),
+        "active=", tostring(new_path))
     if new_path ~= active_font_path then
         active_font_path = new_path
         if plugin.markDirty then plugin:markDirty() end
@@ -270,9 +274,14 @@ local function buildUnifontItems(plugin)
     }
 end
 
+-- patchBookends receives the Bookends *class* (userpatch fires after the
+-- instance is built and passes the plugin module). We therefore wrap class
+-- methods, and compute the active font against the live instance (`self`)
+-- lazily from within resolveLineConfig — the class has no document.
 local function patchBookends(plugin)
     if plugin._bookend_unifont_applied then return end
     plugin._bookend_unifont_applied = true
+    logger.info("bookend-unifont: applied to Bookends class")
 
     -- Render-time substitution: when an active font is set, swap it in as the
     -- face name and delegate to the original. resolveLineConfig itself resolves
@@ -281,6 +290,12 @@ local function patchBookends(plugin)
     -- Bookends' stored settings.
     local orig_resolveLineConfig = plugin.resolveLineConfig
     plugin.resolveLineConfig = function(self, face_name, font_size, style)
+        -- Compute once per opened document, against the live instance.
+        local doc_file = self.ui and self.ui.document and self.ui.document.file or false
+        if self._unifont_doc_file ~= doc_file then
+            self._unifont_doc_file = doc_file
+            computeActiveFont(self)
+        end
         if active_font_path then
             return orig_resolveLineConfig(self, active_font_path, font_size, style)
         end
@@ -296,10 +311,6 @@ local function patchBookends(plugin)
         end
         return items
     end
-
-    -- The reader plugin instance is created with the document already loaded,
-    -- so compute the active font now.
-    computeActiveFont(plugin)
 end
 
 userpatch.registerPatchPluginFunc("bookends", patchBookends)
