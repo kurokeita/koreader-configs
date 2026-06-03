@@ -26,6 +26,7 @@ local userpatch   = require("userpatch")
 local Archiver    = require("ffi/archiver")
 local DataStorage = require("datastorage")
 local Font        = require("ui/font")
+local FontList    = require("fontlist")
 local lfs         = require("libs/libkoreader-lfs")
 local util        = require("util")
 local logger      = require("logger")
@@ -133,6 +134,18 @@ local function pickBodyFont(entries, used)
     return first_regular or first_used or entries[1]
 end
 
+-- Make an extracted font loadable by Font:getFace. Font:getFace can only
+-- resolve a face whose path is present in FontList's (session-memoized) list,
+-- so we ensure that list is built and then append our path. FreeType loads the
+-- file by content, so its extension and location are irrelevant.
+local function registerFontPath(path)
+    FontList:getFontList() -- ensure the base list is built before we append
+    for _, p in ipairs(FontList.fontlist) do
+        if p == path then return end
+    end
+    table.insert(FontList.fontlist, path)
+end
+
 -- Extract the book's body font to the cache and return its absolute path, or
 -- nil if the book is not zip-based / has no usable font / extraction fails.
 local function tryExtractBookFont(doc)
@@ -140,9 +153,12 @@ local function tryExtractBookFont(doc)
     if not file or not isZipBased(file) then return nil end
 
     local cache_path = CACHE_DIR .. cacheKey(file)
-    if lfs.attributes(cache_path, "mode") == "file" and Font:getFace(cache_path, 20) then
-        pruneCache(cache_path)
-        return cache_path
+    if lfs.attributes(cache_path, "mode") == "file" then
+        registerFontPath(cache_path)
+        if Font:getFace(cache_path, 20) then
+            pruneCache(cache_path)
+            return cache_path
+        end
     end
 
     local arc = Archiver.Reader:new()
@@ -178,9 +194,14 @@ local function tryExtractBookFont(doc)
     ensureCacheDir()
     local ok = arc:extractToPath(chosen.path, cache_path)
     arc:close()
-    if not ok then return nil end
+    if not ok then
+        logger.info("bookend-unifont: extractToPath failed for", chosen.path)
+        return nil
+    end
 
+    registerFontPath(cache_path)
     if not Font:getFace(cache_path, 20) then
+        logger.info("bookend-unifont: Font:getFace rejected", cache_path)
         os.remove(cache_path)
         return nil
     end
