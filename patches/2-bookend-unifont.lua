@@ -131,6 +131,82 @@ local function pickBodyFont(entries, used)
     return first_regular or first_used or entries[1]
 end
 
+-- Extract the book's body font to the cache and return its absolute path, or
+-- nil if the book is not zip-based / has no usable font / extraction fails.
+local function tryExtractBookFont(doc)
+    local file = doc.file
+    if not file or not isZipBased(file) then return nil end
+
+    local cache_path = CACHE_DIR .. cacheKey(file)
+    if lfs.attributes(cache_path, "mode") == "file" and Font:getFace(cache_path, 20) then
+        pruneCache(cache_path)
+        return cache_path
+    end
+
+    local arc = Archiver.Reader:new()
+    if not arc:open(file) then return nil end
+
+    local entries = {}
+    for entry in arc:iterate() do
+        if entry.mode == "file" then
+            local ext = entry.path:lower():match("%.([%w]+)$")
+            if ext and FONT_EXTS[ext] then
+                entries[#entries + 1] = {
+                    path = entry.path,
+                    base = entry.path:lower():match("([^/]+)$"),
+                }
+            end
+        end
+    end
+
+    if #entries == 0 then
+        arc:close()
+        return nil
+    end
+
+    local used = {}
+    local list = doc.getEmbeddedFontList and doc:getEmbeddedFontList()
+    if list then
+        for name in pairs(list) do
+            used[normalizeFamily(name)] = true
+        end
+    end
+
+    local chosen = pickBodyFont(entries, used)
+    ensureCacheDir()
+    local ok = arc:extractToPath(chosen.path, cache_path)
+    arc:close()
+    if not ok then return nil end
+
+    if not Font:getFace(cache_path, 20) then
+        os.remove(cache_path)
+        return nil
+    end
+    pruneCache(cache_path)
+    return cache_path
+end
+
+-- Recompute active_font_path from settings + current document, and repaint
+-- Bookends if it changed. Safe to call repeatedly.
+local function computeActiveFont(plugin)
+    local new_path = nil
+    if G_reader_settings:isTrue(ENABLED_KEY) and plugin.ui and plugin.ui.document then
+        local ok, result = pcall(tryExtractBookFont, plugin.ui.document)
+        if ok and result then
+            new_path = result
+        else
+            if not ok then
+                logger.warn("bookend-unifont: extraction error:", result)
+            end
+            new_path = G_reader_settings:readSetting(FALLBACK_KEY) -- may be nil
+        end
+    end
+    if new_path ~= active_font_path then
+        active_font_path = new_path
+        if plugin.markDirty then plugin:markDirty() end
+    end
+end
+
 local function patchBookends(plugin)
     if plugin._bookend_unifont_applied then return end
     plugin._bookend_unifont_applied = true
