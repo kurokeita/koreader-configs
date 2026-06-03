@@ -116,22 +116,39 @@ local function isRegularFontName(base)
     return true
 end
 
--- Choose the book's main body face from collected font entries.
--- entries: array of { path = <path in archive>, base = <lowercased basename> }
--- used:    set keyed by normalizeFamily(name) for fonts the book actually uses.
--- Preference: regular-weight AND used > regular-weight > used > first entry.
-local function pickBodyFont(entries, used)
-    local first_regular, first_used
-    for _, e in ipairs(entries) do
-        local is_regular = isRegularFontName(e.base)
-        local in_used = used[normalizeFamily(e.base)] == true
-        if is_regular and in_used then
-            return e
-        end
-        if is_regular and not first_regular then first_regular = e end
-        if in_used and not first_used then first_used = e end
+-- Tokens that mark a display/title/heading face rather than body text.
+local DISPLAY_TOKENS = {
+    "display", "title", "heading", "headline", "head", "caption",
+    "smallcap", "script", "swash", "deco", "ornament", "initial",
+    "dropcap", "hand",
+}
+
+local function isDisplayName(base)
+    for _, token in ipairs(DISPLAY_TOKENS) do
+        if base:find(token, 1, true) then return true end
     end
-    return first_regular or first_used or entries[1]
+    return false
+end
+
+-- Choose the book's main body face from collected font entries.
+-- entries: array of { path, base = <lowercased basename>, size = <bytes> }
+-- used:    set keyed by normalizeFamily(name) for fonts the book actually uses.
+-- Score favors a regular-weight, non-display, used face; ties broken by the
+-- largest file, since body fonts carry the full character set while title and
+-- display fonts are usually subset down to a few glyphs.
+local function pickBodyFont(entries, used)
+    local best, best_score
+    for _, e in ipairs(entries) do
+        local score = 0
+        if isRegularFontName(e.base) then score = score + 100 end
+        if not isDisplayName(e.base) then score = score + 50 end
+        if used[normalizeFamily(e.base)] == true then score = score + 10 end
+        if not best or score > best_score
+                or (score == best_score and (e.size or 0) > (best.size or 0)) then
+            best, best_score = e, score
+        end
+    end
+    return best or entries[1]
 end
 
 -- Make an extracted font loadable by Font:getFace. Font:getFace can only
@@ -172,6 +189,7 @@ local function tryExtractBookFont(doc)
                 entries[#entries + 1] = {
                     path = entry.path,
                     base = entry.path:lower():match("([^/]+)$"),
+                    size = entry.size or 0,
                 }
             end
         end
