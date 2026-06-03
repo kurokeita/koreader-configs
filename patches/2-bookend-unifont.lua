@@ -207,6 +207,69 @@ local function computeActiveFont(plugin)
     end
 end
 
+-- Human-readable label for a stored fallback face value (path or @family:).
+local function faceLabel(face)
+    if not face then return _("None") end
+    local fam = tostring(face):match("^@family:(.+)$")
+    if fam then return fam end
+    local base = tostring(face):match("([^/]+)$") or tostring(face)
+    return (base:gsub("%.%w+$", ""))
+end
+
+local function buildUnifontItems(plugin)
+    return {
+        {
+            text = _("Use book's embedded font"),
+            help_text = _("Render Bookends overlays in the font embedded in the current book (EPUB and other zip-based formats). Falls back to the chosen fallback font, or Bookends' own font, when the book has no embedded font."),
+            checked_func = function()
+                return G_reader_settings:isTrue(ENABLED_KEY)
+            end,
+            callback = function()
+                G_reader_settings:flipNilOrFalse(ENABLED_KEY)
+                computeActiveFont(plugin)
+            end,
+        },
+        {
+            text_func = function()
+                return _("Fallback font") .. " (" ..
+                    faceLabel(G_reader_settings:readSetting(FALLBACK_KEY)) .. ")"
+            end,
+            enabled_func = function()
+                return G_reader_settings:isTrue(ENABLED_KEY)
+            end,
+            sub_item_table_func = function()
+                return {
+                    {
+                        text = _("None (use Bookends' own font)"),
+                        checked_func = function()
+                            return G_reader_settings:readSetting(FALLBACK_KEY) == nil
+                        end,
+                        callback = function()
+                            G_reader_settings:delSetting(FALLBACK_KEY)
+                            computeActiveFont(plugin)
+                        end,
+                    },
+                    {
+                        text_func = function()
+                            return _("Choose fallback font…") .. " (" ..
+                                faceLabel(G_reader_settings:readSetting(FALLBACK_KEY)) .. ")"
+                        end,
+                        callback = function()
+                            plugin:showFontPicker(
+                                G_reader_settings:readSetting(FALLBACK_KEY),
+                                function(face)
+                                    G_reader_settings:saveSetting(FALLBACK_KEY, face)
+                                    computeActiveFont(plugin)
+                                end,
+                                Font.fontmap["ffont"])
+                        end,
+                    },
+                }
+            end,
+        },
+    }
+end
+
 local function patchBookends(plugin)
     if plugin._bookend_unifont_applied then return end
     plugin._bookend_unifont_applied = true
@@ -222,6 +285,16 @@ local function patchBookends(plugin)
             return orig_resolveLineConfig(self, active_font_path, font_size, style)
         end
         return orig_resolveLineConfig(self, face_name, font_size, style)
+    end
+
+    -- Append our settings into Bookends' own settings submenu.
+    local orig_buildBookendsSettingsMenu = plugin.buildBookendsSettingsMenu
+    plugin.buildBookendsSettingsMenu = function(self)
+        local items = orig_buildBookendsSettingsMenu(self)
+        for _, item in ipairs(buildUnifontItems(self)) do
+            items[#items + 1] = item
+        end
+        return items
     end
 
     -- The reader plugin instance is created with the document already loaded,
