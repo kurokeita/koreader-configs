@@ -45,6 +45,9 @@ local ZIP_SUFFIXES = { ".epub", ".fb2.zip", ".htmlz" }
 -- nil when the patch should not override Bookends' own font. Shared across the
 -- single live reader instance; recomputed on each book open and on toggle.
 local active_font_path = nil
+-- Path we last appended to FontList.fontlist, so we can remove it again and
+-- avoid accumulating stale entries that point at pruned cache files.
+local injected_font_path = nil
 
 -- True for book files we can open as an archive and mine for fonts.
 local function isZipBased(file)
@@ -96,20 +99,28 @@ local NON_REGULAR = {
     "extrabold", "extralight",
 }
 
--- Tokens stripped when comparing a filename family to a used-font display name.
+-- Weight/style tokens dropped when comparing family names. Matched as whole
+-- tokens (see normalizeFamily), never as substrings.
 local STRIP_TOKENS = {
     "regular", "book", "roman",
     "bold", "italic", "oblique", "black", "light", "thin",
     "semibold", "demibold", "medium", "condensed", "heavy",
     "extrabold", "extralight",
 }
+local STRIP_SET = {}
+for _, token in ipairs(STRIP_TOKENS) do STRIP_SET[token] = true end
 
+-- Reduce a font family or filename to a comparable key: drop the extension,
+-- split into alphabetic tokens, discard weight/style words, and join the rest.
+-- Whole-token matching avoids mangling names like "Bookerly" (which merely
+-- contains the substring "book").
 local function normalizeFamily(s)
     s = tostring(s):lower():gsub("%.%w+$", "")
-    for _, token in ipairs(STRIP_TOKENS) do
-        s = s:gsub(token, "")
+    local kept = {}
+    for token in s:gmatch("%a+") do
+        if not STRIP_SET[token] then kept[#kept + 1] = token end
     end
-    return (s:gsub("[^%a]", ""))
+    return table.concat(kept)
 end
 
 local function isRegularFontName(base)
@@ -220,12 +231,26 @@ local function resolveBodyFontEntry(css, entries)
     return false
 end
 
+-- Remove the previously injected entry from FontList so the list (and the font
+-- pickers it feeds) does not accumulate stale paths to pruned cache files.
+local function clearInjectedFont()
+    if not injected_font_path then return end
+    for i = #FontList.fontlist, 1, -1 do
+        if FontList.fontlist[i] == injected_font_path then
+            table.remove(FontList.fontlist, i)
+        end
+    end
+    injected_font_path = nil
+end
+
 -- Make an extracted font loadable by Font:getFace. Font:getFace can only
 -- resolve a face whose path is present in FontList's (session-memoized) list,
 -- so we ensure that list is built and then append our path. FreeType loads the
 -- file by content, so its extension and location are irrelevant.
 local function registerFontPath(path)
     FontList:getFontList() -- ensure the base list is built before we append
+    if injected_font_path ~= path then clearInjectedFont() end
+    injected_font_path = path
     for _, p in ipairs(FontList.fontlist) do
         if p == path then return end
     end
@@ -284,6 +309,8 @@ local function tryExtractBookFont(doc)
         local r = resolveBodyFontEntry(stripCssComments(css), entries)
         if r == false then
             arc:close()
+            clearInjectedFont()
+            pruneCache(nil)
             return nil
         end
         chosen = r or nil
@@ -404,8 +431,8 @@ end
 
 -- patchBookends receives the Bookends *class* (userpatch fires after the
 -- instance is built and passes the plugin module). We therefore wrap class
--- methods, and compute the active font against the live instance (`self`)
--- lazily from within resolveLineConfig — the class has no document.
+-- methods; the active font is computed against the live instance (`self`) when
+-- the document becomes ready, the class itself has no document.
 local function patchBookends(plugin)
     if plugin._bookend_unifont_applied then return end
     plugin._bookend_unifont_applied = true
@@ -414,10 +441,10 @@ local function patchBookends(plugin)
     -- face name and delegate to the original. resolveLineConfig itself resolves
     -- @family: sentinels and variant lookups, so both an absolute path and a
     -- face sentinel (from the fallback picker) work unchanged. Never writes
-    -- Bookends' stored settings.
+    -- Bookends' stored settings. The lazy compute is a fallback for the case
+    -- where onReaderReady did not run (e.g. font extracted on first paint).
     local orig_resolveLineConfig = plugin.resolveLineConfig
     plugin.resolveLineConfig = function(self, face_name, font_size, style)
-        -- Compute once per opened document, against the live instance.
         local doc_file = self.ui and self.ui.document and self.ui.document.file or false
         if self._unifont_doc_file ~= doc_file then
             self._unifont_doc_file = doc_file
@@ -427,6 +454,15 @@ local function patchBookends(plugin)
             return orig_resolveLineConfig(self, active_font_path, font_size, style)
         end
         return orig_resolveLineConfig(self, face_name, font_size, style)
+    end
+
+    -- Compute the active font when the document is ready, keeping the archive
+    -- IO off the paint path.
+    local orig_onReaderReady = plugin.onReaderReady
+    plugin.onReaderReady = function(self, doc_settings)
+        if orig_onReaderReady then orig_onReaderReady(self, doc_settings) end
+        self._unifont_doc_file = self.ui and self.ui.document and self.ui.document.file or false
+        computeActiveFont(self)
     end
 
     -- Append our settings into Bookends' own settings submenu.
