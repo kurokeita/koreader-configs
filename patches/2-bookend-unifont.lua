@@ -59,7 +59,7 @@ end
 
 -- Bump when the font-selection logic changes so stale cached picks are
 -- re-extracted instead of reused (pruneCache then removes the old files).
-local CACHE_VERSION = "v2"
+local CACHE_VERSION = "v3"
 
 -- Stable per-book cache filename (independent of which font we pick), so a
 -- second open of the same book reuses the extracted file without reopening the
@@ -156,6 +156,72 @@ local function pickBodyFont(entries, used)
     return best or entries[1]
 end
 
+-- Strip CSS comments so they can't hide declarations.
+local function stripCssComments(css)
+    return (css:gsub("/%*.-%*/", " "))
+end
+
+-- Ordered list of font families declared for body text, or nil if no body rule.
+local function bodyFamilyList(css)
+    for sel, block in css:gmatch("([^{}]+)(%b{})") do
+        local s = sel:lower()
+        if s:find("%f[%a]body%f[%A]") and not s:find("@") then
+            local decl = block:match("font%-family%s*:%s*([^;}]+)")
+            if decl then
+                local list = {}
+                for fam in decl:gmatch("[^,]+") do
+                    fam = fam:gsub("[\"']", ""):gsub("^%s+", ""):gsub("%s+$", "")
+                    if fam ~= "" then list[#list + 1] = fam end
+                end
+                if #list > 0 then return list end
+            end
+        end
+    end
+    return nil
+end
+
+-- Map of normalizeFamily(name) -> src url for normal-weight @font-face rules.
+local function fontFaceSources(css)
+    local map = {}
+    for sel, block in css:gmatch("([^{}]+)(%b{})") do
+        if sel:lower():find("@font%-face") then
+            local fam = block:match("font%-family%s*:%s*([^;}]+)")
+            local url = block:match("url%(%s*['\"]?([^'\")]+)")
+            if fam and url then
+                local style  = (block:match("font%-style%s*:%s*([^;}]+)")  or "normal"):lower()
+                local weight = (block:match("font%-weight%s*:%s*([^;}]+)") or "normal"):lower()
+                local norm = normalizeFamily(fam)
+                local is_normal = not style:find("italic") and not style:find("oblique")
+                    and not weight:find("bold") and not weight:find("[5-9]00")
+                if norm ~= "" and (is_normal or map[norm] == nil) then
+                    map[norm] = url
+                end
+            end
+        end
+    end
+    return map
+end
+
+-- Use the book's CSS to find the embedded *body* font file.
+-- Returns: an entry (embedded body font found),
+--          false (a body font is declared but not embedded -> use fallback),
+--          nil   (inconclusive: no body rule -> caller may use the heuristic).
+local function resolveBodyFontEntry(css, entries)
+    local fams = bodyFamilyList(css)
+    if not fams then return nil end
+    local sources = fontFaceSources(css)
+    for _, fam in ipairs(fams) do
+        local url = sources[normalizeFamily(fam)]
+        if url then
+            local base = url:lower():match("([^/\\]+)$")
+            for _, e in ipairs(entries) do
+                if e.base == base then return e end
+            end
+        end
+    end
+    return false
+end
+
 -- Make an extracted font loadable by Font:getFace. Font:getFace can only
 -- resolve a face whose path is present in FontList's (session-memoized) list,
 -- so we ensure that list is built and then append our path. FreeType loads the
@@ -186,7 +252,7 @@ local function tryExtractBookFont(doc)
     local arc = Archiver.Reader:new()
     if not arc:open(file) then return nil end
 
-    local entries = {}
+    local entries, css_paths = {}, {}
     for entry in arc:iterate() do
         if entry.mode == "file" then
             local ext = entry.path:lower():match("%.([%w]+)$")
@@ -196,6 +262,8 @@ local function tryExtractBookFont(doc)
                     base = entry.path:lower():match("([^/]+)$"),
                     size = entry.size or 0,
                 }
+            elseif ext == "css" then
+                css_paths[#css_paths + 1] = entry.path
             end
         end
     end
@@ -205,15 +273,36 @@ local function tryExtractBookFont(doc)
         return nil
     end
 
-    local used = {}
-    local list = doc.getEmbeddedFontList and doc:getEmbeddedFontList()
-    if list then
-        for name in pairs(list) do
-            used[normalizeFamily(name)] = true
+    -- Prefer the embedded *body* font as declared in the book's CSS, so we
+    -- don't grab a heading/title-only embedded font when the body text uses a
+    -- non-embedded system font.
+    local chosen
+    local css = ""
+    for _, p in ipairs(css_paths) do
+        local ok, data = pcall(function() return arc:extractToMemory(p) end)
+        if ok and data then css = css .. "\n" .. data end
+    end
+    if css ~= "" then
+        local r = resolveBodyFontEntry(stripCssComments(css), entries)
+        if r == false then
+            arc:close()
+            logger.info("bookend-unifont: body font not embedded; using fallback")
+            return nil
         end
+        chosen = r or nil
     end
 
-    local chosen = pickBodyFont(entries, used)
+    if not chosen then
+        local used = {}
+        local list = doc.getEmbeddedFontList and doc:getEmbeddedFontList()
+        if list then
+            for name in pairs(list) do
+                used[normalizeFamily(name)] = true
+            end
+        end
+        chosen = pickBodyFont(entries, used)
+    end
+
     ensureCacheDir()
     local ok = arc:extractToPath(chosen.path, cache_path)
     arc:close()
