@@ -32,8 +32,6 @@ local util        = require("util")
 local logger      = require("logger")
 local _           = require("gettext")
 
-logger.info("bookend-unifont: patch file loaded")
-
 local ENABLED_KEY  = "bookend_unifont_enabled"
 local FALLBACK_KEY = "bookend_unifont_fallback"
 local CACHE_DIR    = DataStorage:getDataDir() .. "/cache/bookend-unifont/"
@@ -286,7 +284,6 @@ local function tryExtractBookFont(doc)
         local r = resolveBodyFontEntry(stripCssComments(css), entries)
         if r == false then
             arc:close()
-            logger.info("bookend-unifont: body font not embedded; using fallback")
             return nil
         end
         chosen = r or nil
@@ -336,8 +333,6 @@ local function computeActiveFont(plugin)
             new_path = G_reader_settings:readSetting(FALLBACK_KEY) -- may be nil
         end
     end
-    logger.info("bookend-unifont: enabled=", G_reader_settings:isTrue(ENABLED_KEY),
-        "active=", tostring(new_path))
     if new_path ~= active_font_path then
         active_font_path = new_path
         if plugin.markDirty then plugin:markDirty() end
@@ -414,7 +409,6 @@ end
 local function patchBookends(plugin)
     if plugin._bookend_unifont_applied then return end
     plugin._bookend_unifont_applied = true
-    logger.info("bookend-unifont: applied to Bookends class")
 
     -- Render-time substitution: when an active font is set, swap it in as the
     -- face name and delegate to the original. resolveLineConfig itself resolves
