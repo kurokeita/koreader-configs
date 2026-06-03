@@ -82,6 +82,55 @@ local function pruneCache(keep_path)
     end
 end
 
+-- Tokens that mark a non-regular weight/style. If a font filename contains any
+-- of these, it is not our preferred body face.
+local NON_REGULAR = {
+    "bold", "italic", "oblique", "black", "light", "thin",
+    "semibold", "demibold", "medium", "condensed", "heavy",
+    "extrabold", "extralight",
+}
+
+-- Tokens stripped when comparing a filename family to a used-font display name.
+local STRIP_TOKENS = {
+    "regular", "book", "roman",
+    "bold", "italic", "oblique", "black", "light", "thin",
+    "semibold", "demibold", "medium", "condensed", "heavy",
+    "extrabold", "extralight",
+}
+
+local function normalizeFamily(s)
+    s = tostring(s):lower():gsub("%.%w+$", "")
+    for _, token in ipairs(STRIP_TOKENS) do
+        s = s:gsub(token, "")
+    end
+    return (s:gsub("[^%a]", ""))
+end
+
+local function isRegularFontName(base)
+    for _, token in ipairs(NON_REGULAR) do
+        if base:find(token, 1, true) then return false end
+    end
+    return true
+end
+
+-- Choose the book's main body face from collected font entries.
+-- entries: array of { path = <path in archive>, base = <lowercased basename> }
+-- used:    set keyed by normalizeFamily(name) for fonts the book actually uses.
+-- Preference: regular-weight AND used > regular-weight > used > first entry.
+local function pickBodyFont(entries, used)
+    local first_regular, first_used
+    for _, e in ipairs(entries) do
+        local is_regular = isRegularFontName(e.base)
+        local in_used = used[normalizeFamily(e.base)] == true
+        if is_regular and in_used then
+            return e
+        end
+        if is_regular and not first_regular then first_regular = e end
+        if in_used and not first_used then first_used = e end
+    end
+    return first_regular or first_used or entries[1]
+end
+
 local function patchBookends(plugin)
     if plugin._bookend_unifont_applied then return end
     plugin._bookend_unifont_applied = true
