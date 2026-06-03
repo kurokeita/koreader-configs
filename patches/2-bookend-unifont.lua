@@ -45,6 +45,43 @@ local ZIP_SUFFIXES = { ".epub", ".fb2.zip", ".htmlz" }
 -- single live reader instance; recomputed on each book open and on toggle.
 local active_font_path = nil
 
+-- True for book files we can open as an archive and mine for fonts.
+local function isZipBased(file)
+    local lower = file:lower()
+    for _, suffix in ipairs(ZIP_SUFFIXES) do
+        if lower:sub(-#suffix) == suffix then return true end
+    end
+    return false
+end
+
+-- Stable per-book cache filename (independent of which font we pick), so a
+-- second open of the same book reuses the extracted file without reopening the
+-- archive. Includes file size to disambiguate same-named books.
+local function cacheKey(file)
+    local attr = lfs.attributes(file)
+    local size = attr and attr.size or 0
+    local flat = file:gsub("[^%w]", "_")
+    return flat:sub(-60) .. "_" .. tostring(size) .. ".font"
+end
+
+local function ensureCacheDir()
+    if lfs.attributes(CACHE_DIR, "mode") ~= "directory" then
+        util.makePath(CACHE_DIR)
+    end
+end
+
+-- Remove every cached font except the one we just used, bounding disk usage.
+local function pruneCache(keep_path)
+    local keep_name = keep_path and keep_path:match("([^/]+)$")
+    local ok, iter, dir_obj = pcall(lfs.dir, CACHE_DIR)
+    if not ok then return end
+    for entry in iter, dir_obj do
+        if entry ~= "." and entry ~= ".." and entry ~= keep_name then
+            os.remove(CACHE_DIR .. entry)
+        end
+    end
+end
+
 local function patchBookends(plugin)
     if plugin._bookend_unifont_applied then return end
     plugin._bookend_unifont_applied = true
