@@ -170,8 +170,15 @@ local function stripCssComments(css)
     return (css:gsub("/%*.-%*/", " "))
 end
 
--- Ordered list of font families declared for body text, or nil if no body rule.
+-- Ordered families from the *last* body rule, or nil if no body rule.
+-- CSS cascades last-wins at equal specificity, so a later `body` declaration
+-- overrides an earlier one (e.g. a reset stylesheet's `body { font-family: serif }`
+-- followed by the main `body { font-family: "EmbeddedBody" }`). We keep the last
+-- rule's list and preserve its order, since the first family in a declaration is
+-- the preferred one. Note: CSS is concatenated in archive iteration order, which
+-- only approximates true stylesheet/spine cascade order.
 local function bodyFamilyList(css)
+    local result
     for sel, block in css:gmatch("([^{}]+)(%b{})") do
         local s = sel:lower()
         if s:find("%f[%a]body%f[%A]") and not s:find("@") then
@@ -182,11 +189,11 @@ local function bodyFamilyList(css)
                     fam = fam:gsub("[\"']", ""):gsub("^%s+", ""):gsub("%s+$", "")
                     if fam ~= "" then list[#list + 1] = fam end
                 end
-                if #list > 0 then return list end
+                if #list > 0 then result = list end
             end
         end
     end
-    return nil
+    return result
 end
 
 -- Map of normalizeFamily(name) -> src url for normal-weight @font-face rules.
