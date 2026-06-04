@@ -11,6 +11,7 @@ device.
 | Priority | File | Targets | Summary |
 | --- | --- | --- | --- |
 | 2 | `2--disable-all-PT-widgets.lua` | coverbrowser (PT) | Disable specific Project: Title UI elements: progress/status icons & widgets, cover borders, and series indicators. |
+| 2 | `2-bookend-line-font-inherit.lua` | bookends (v5.14.0) | Make the line editor's font "Reset" truly inherit. |
 | 2 | `2-bookend-unifont.lua` | bookends (v5.14.0) | Render Bookends overlays in the open book's embedded font. |
 | 2 | `2-coverimage-eink-optimize.lua` | coverimage | Cover image optimization for color e-ink screens (gamma lift, saturation boost, S-curve contrast). |
 | 2 | `2-coverimage-lighten.lua` | coverimage | Add a "Lighten for color e-ink" slider to the Cover Image menu. |
