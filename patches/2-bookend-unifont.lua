@@ -16,10 +16,12 @@ Targets:
 
 Settings (global, in G_reader_settings):
   - bookend_unifont_enabled  (bool, default false)
-  - bookend_unifont_fallback (font face path/sentinel, default nil = none)
 
 Toggle: in the reader, top menu -> Bookends -> Bookends settings
-        -> "Use book's embedded font".
+        -> "Use book's embedded font" (inserted above the stock
+        "Default font" entry, which is disabled while the toggle is on).
+        When the book has no usable embedded font, the overlay falls
+        back to the book's KOReader reading font.
 --]]
 
 local userpatch   = require("userpatch")
@@ -32,9 +34,8 @@ local util        = require("util")
 local logger      = require("logger")
 local _           = require("gettext")
 
-local ENABLED_KEY  = "bookend_unifont_enabled"
-local FALLBACK_KEY = "bookend_unifont_fallback"
-local CACHE_DIR    = DataStorage:getDataDir() .. "/cache/bookend-unifont/"
+local ENABLED_KEY = "bookend_unifont_enabled"
+local CACHE_DIR   = DataStorage:getDataDir() .. "/cache/bookend-unifont/"
 
 -- Font file extensions we will consider extracting from a book archive.
 local FONT_EXTS = { ttf = true, otf = true, ttc = true, otc = true }
@@ -234,7 +235,7 @@ end
 
 -- Use the book's CSS to find the embedded *body* font file.
 -- Returns: an entry (embedded body font found),
---          false (a body font is declared but not embedded -> use fallback),
+--          false (a body font is declared but not embedded -> reading font),
 --          nil   (inconclusive: no body rule -> caller may use the heuristic).
 local function resolveBodyFontEntry(css, entries)
     local fams = bodyFamilyList(css)
@@ -463,10 +464,8 @@ local function computeActiveFont(plugin)
                 logger.warn("bookend-unifont: extraction error:", result)
             end
             clearInjectedFont() -- drop any stale extracted-font injection
-            -- No embedded body font: an explicit fallback font wins, otherwise
-            -- mirror the book's KOReader reading font.
-            new_path = G_reader_settings:readSetting(FALLBACK_KEY)
-                or readingFontPath(plugin)
+            -- No embedded body font: mirror the book's KOReader reading font.
+            new_path = readingFontPath(plugin)
         end
     else
         clearInjectedFont()
@@ -477,66 +476,17 @@ local function computeActiveFont(plugin)
     end
 end
 
--- Human-readable label for a stored fallback face value (path or @family:).
-local function faceLabel(face)
-    if not face then return _("None") end
-    local fam = tostring(face):match("^@family:(.+)$")
-    if fam then return fam end
-    local base = tostring(face):match("([^/]+)$") or tostring(face)
-    return (base:gsub("%.%w+$", ""))
-end
-
-local function buildUnifontItems(plugin)
+local function buildUnifontToggle(plugin)
     return {
-        {
-            text = _("Use book's embedded font"),
-            help_text = _("Render Bookends overlays in the font embedded in the current book (EPUB and other zip-based formats). When the book has no embedded font, falls back to the chosen fallback font, or the book's KOReader reading font."),
-            checked_func = function()
-                return G_reader_settings:isTrue(ENABLED_KEY)
-            end,
-            callback = function()
-                G_reader_settings:flipNilOrFalse(ENABLED_KEY)
-                computeActiveFont(plugin)
-            end,
-        },
-        {
-            text_func = function()
-                return _("Fallback font") .. " (" ..
-                    faceLabel(G_reader_settings:readSetting(FALLBACK_KEY)) .. ")"
-            end,
-            enabled_func = function()
-                return G_reader_settings:isTrue(ENABLED_KEY)
-            end,
-            sub_item_table_func = function()
-                return {
-                    {
-                        text = _("None (use the book's reading font)"),
-                        checked_func = function()
-                            return G_reader_settings:readSetting(FALLBACK_KEY) == nil
-                        end,
-                        callback = function()
-                            G_reader_settings:delSetting(FALLBACK_KEY)
-                            computeActiveFont(plugin)
-                        end,
-                    },
-                    {
-                        text_func = function()
-                            return _("Choose fallback font…") .. " (" ..
-                                faceLabel(G_reader_settings:readSetting(FALLBACK_KEY)) .. ")"
-                        end,
-                        callback = function()
-                            plugin:showFontPicker(
-                                G_reader_settings:readSetting(FALLBACK_KEY),
-                                function(face)
-                                    G_reader_settings:saveSetting(FALLBACK_KEY, face)
-                                    computeActiveFont(plugin)
-                                end,
-                                Font.fontmap["ffont"])
-                        end,
-                    },
-                }
-            end,
-        },
+        text = _("Use book's embedded font"),
+        help_text = _("Render Bookends overlays in the font embedded in the current book (EPUB and other zip-based formats). When the book has no embedded font, falls back to the book's KOReader reading font."),
+        checked_func = function()
+            return G_reader_settings:isTrue(ENABLED_KEY)
+        end,
+        callback = function()
+            G_reader_settings:flipNilOrFalse(ENABLED_KEY)
+            computeActiveFont(plugin)
+        end,
     }
 end
 
@@ -549,11 +499,10 @@ local function patchBookends(plugin)
     plugin._bookend_unifont_applied = true
 
     -- Render-time substitution: when an active font is set, swap it in as the
-    -- face name and delegate to the original. resolveLineConfig itself resolves
-    -- @family: sentinels and variant lookups, so both an absolute path and a
-    -- face sentinel (from the fallback picker) work unchanged. Never writes
-    -- Bookends' stored settings. The lazy compute is a fallback for the case
-    -- where onReaderReady did not run (e.g. font extracted on first paint).
+    -- face name (an absolute file path, which resolveLineConfig loads directly)
+    -- and delegate to the original. Never writes Bookends' stored settings. The
+    -- lazy compute is a fallback for the case where onReaderReady did not run
+    -- (e.g. font extracted on first paint).
     local orig_resolveLineConfig = plugin.resolveLineConfig
     plugin.resolveLineConfig = function(self, face_name, font_size, style)
         local doc_file = self.ui and self.ui.document and self.ui.document.file or false
@@ -576,13 +525,26 @@ local function patchBookends(plugin)
         computeActiveFont(self)
     end
 
-    -- Append our settings into Bookends' own settings submenu.
+    -- Insert our toggle just above Bookends' "Default font" entry and disable
+    -- that entry while the toggle is on (the embedded/reading font overrides
+    -- it at render time, so editing it would have no visible effect).
     local orig_buildBookendsSettingsMenu = plugin.buildBookendsSettingsMenu
     plugin.buildBookendsSettingsMenu = function(self)
         local items = orig_buildBookendsSettingsMenu(self)
-        for _, item in ipairs(buildUnifontItems(self)) do
-            items[#items + 1] = item
+        local toggle = buildUnifontToggle(self)
+        local prefix = _("Default font")
+        for i, item in ipairs(items) do
+            local text = item.text_func and item.text_func() or item.text
+            if text and text:sub(1, #prefix) == prefix then
+                item.enabled_func = function()
+                    return not G_reader_settings:isTrue(ENABLED_KEY)
+                end
+                table.insert(items, i, toggle)
+                return items
+            end
         end
+        -- "Default font" entry not found (menu layout changed): append instead.
+        items[#items + 1] = toggle
         return items
     end
 end
