@@ -39,8 +39,8 @@ Sleep screen path:
 | Optimize for color e-ink (Cover image) | 0 (off) | Strength 0-100 % in steps of 5; scales gamma (1.0-2.0), saturation (1.0-1.8), and S-curve steepness (0-8) before dithering | 50 |
 | Optimize for color e-ink (Sleep screen) | 0 (off) | Same pipeline, applied to the built-in screensaver's cover/random image | 50 |
 
-> **Draft recommendation** - confirm before merge. (The patch's own help text
-> suggests 30 = subtle, 50 = recommended, 80 = aggressive.)
+The patch's own help text suggests 30 = subtle, 50 = recommended,
+80 = aggressive.
 
 Persisted in `G_reader_settings` keys `cover_image_eink_optimize` and
 `screensaver_eink_optimize`. On the sleep-screen side, processing applies to

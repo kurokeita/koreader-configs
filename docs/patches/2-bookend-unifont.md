@@ -35,8 +35,6 @@ Menu path: `Top menu > Bookends > Bookends settings > Use book's embedded font`
 | --- | --- | --- | --- |
 | Use book's embedded font | off | Toggles the render-time font override for all overlay lines | on |
 
-> **Draft recommendation** - confirm before merge.
-
 While the toggle is on, Bookends' own "Default font" entry is greyed out,
 since the override would hide any change made there.
 

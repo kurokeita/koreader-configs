@@ -24,8 +24,7 @@ Menu path:
 | --- | --- | --- | --- |
 | Lighten for color e-ink | 0 (off) | Blends the saved cover toward white by 0-70 % | 30 |
 
-> **Draft recommendation** - confirm before merge. (The patch's own help text
-> suggests 30 = subtle, 50 = medium.)
+The patch's own help text suggests 30 = subtle, 50 = medium.
 
 Changing the value immediately regenerates the cover image for the open book.
 Persisted in `G_reader_settings` key `cover_image_lighten`.
