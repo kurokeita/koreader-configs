@@ -1,4 +1,4 @@
---[[ Patch to add progress percentage badges in top right corner of cover ]]
+--[[ Patch to add progress percentage badges on book covers ]]
 --
 
 -- stylua: ignore start

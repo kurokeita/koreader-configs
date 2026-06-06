@@ -1,18 +1,17 @@
 # Plugins
 
-This folder used to vendor plugin source. Install the latest release
-directly from upstream instead.
+Plugin source is not vendored here. Versions are pinned per KOReader
+target in [`manifest.yml`](manifest.yml); the release workflow downloads
+those exact upstream tags into the bundle.
 
-## ProjectTitle
+For install steps and recommended in-app settings, see
+[docs/plugins.md](../docs/plugins.md).
 
-Releases: <https://github.com/joshuacant/ProjectTitle/releases>
+| Plugin | Upstream | Install dir |
+| --- | --- | --- |
+| Project: Title | <https://github.com/joshuacant/ProjectTitle/releases> | `projecttitle.koplugin/` |
+| Bookends | <https://github.com/AndyHazz/bookends.koplugin/releases> | `bookends.koplugin/` |
 
-Download the latest release and drop the `projecttitle.koplugin/`
-directory into your KOReader `plugins/` directory.
-
-## bookends
-
-Releases: <https://github.com/AndyHazz/bookends.koplugin/releases>
-
-Download the latest release and drop the `bookends.koplugin/`
-directory into your KOReader `plugins/` directory.
+Installing manually instead of from a release bundle? Use exactly the
+tags pinned in `manifest.yml`; the patches in this repo are written
+against those versions.

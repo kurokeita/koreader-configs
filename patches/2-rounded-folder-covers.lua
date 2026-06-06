@@ -1,3 +1,19 @@
+--[[
+rounded-folder-covers - give folders in mosaic view real cover images with rounded corners.
+
+Renders each folder cell as a cover image (a `.cover.{jpg,jpeg,png,webp,gif}`
+file in the folder, falling back to the first contained book's cached cover)
+with rounded-corner overlays, an optional centered folder-name plate, and an
+item-count badge in the bottom-right. Adds "Folder name centered" and "Show
+folder name" toggles to the Mosaic and detailed list settings menu. Aspect
+ratio, fonts, and border thickness are tunable constants at the top of this
+file. Requires the rounded.corner.*.svg icons from this repo's icons/ set.
+
+Targets:
+  - coverbrowser @ joshuacant/ProjectTitle 2026.03-v3.7 (MosaicMenuItem,
+    FileChooser.getListItem) via userpatch.registerPatchPluginFunc
+--]]
+
 local AlphaContainer = require("ui/widget/container/alphacontainer")
 local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")

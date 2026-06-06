@@ -46,7 +46,7 @@ userpatch in this repo does.
 
    | Priority | File | Targets | Summary |
    | --- | --- | --- | --- |
-   | 2 | `2-pt-footer-history-recent.lua` | coverbrowser (PT) | ... |
+   | 2 | [`2-pt-footer-history-recent.lua`](../docs/patches/2-pt-footer-history-recent.md) | coverbrowser (PT) | ... |
    | ... | ... | ... | ... |
 
    ## Disabled
@@ -67,3 +67,5 @@ userpatch in this repo does.
   writes `patches/README.md`.
 - Use `Write` to overwrite the README; do not append to a stale
   version.
+- Link each File cell to `../docs/patches/<name>.md` when that file
+  exists in the repo; fall back to a plain code span when it does not.
