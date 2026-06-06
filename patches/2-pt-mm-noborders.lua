@@ -1,3 +1,14 @@
+--[[
+pt-mm-noborders - remove separator lines in Project: Title's mosaic view.
+
+Overrides ptutil.mediumBlackLine with a zero-width span and ptutil.thinGrayLine
+with the thin white variant, so mosaic book covers render without horizontal
+border lines.
+
+Targets:
+  - coverbrowser @ joshuacant/ProjectTitle 2026.03-v3.7 (ptutil line helpers)
+--]]
+
 local userpatch = require("userpatch")
 local logger = require("logger")
 local VerticalSpan = require("ui/widget/verticalspan")
