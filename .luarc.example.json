@@ -19,6 +19,8 @@
     "node_modules"
   ],
   "workspace.checkThirdParty": false,
+  "diagnostics.libraryFiles": "Disable",
+  "diagnostics.ignoredFiles": "Disable",
   "diagnostics.globals": [
     "G_reader_settings"
   ],
