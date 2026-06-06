@@ -4,14 +4,14 @@
 (schema version 5): complete overlay layouts that can be loaded from
 Bookends' preset library. Two are shipped, `manga.lua` and `novel.lua`.
 
-Presets are **not** part of the release bundle; install them manually.
+Since v0.4.0 the release bundle ships them in its `settings/` folder.
 
 ## Applying a preset
 
 1. Copy the preset files into `koreader/settings/bookends_presets/` on the
-   device (create the directory if needed). The repo's `settings/` folder
-   mirrors the device layout, so you can copy `settings/*` to `koreader/`
-   wholesale.
+   device (create the directory if needed). The bundle's and the repo's
+   `settings/` folders mirror the device layout, so you can copy
+   `settings/*` to `koreader/` wholesale.
 2. Open a book, then
    `Top menu > typeset/document tab (style icon) > Bookends > Preset > Preset library…`
 3. Pick `manga` or `novel` and apply it.
@@ -27,12 +27,15 @@ Both presets use the same base configuration:
 | --- | --- | --- |
 | `font_scale` | 100 | Global font scale (percent) |
 | `font_size` | 11 | Default overlay font size |
-| `margin_top` / `margin_bottom` | 10 | Vertical distance from screen edges |
-| `margin_left` / `margin_right` | 28 | Horizontal distance from screen edges |
+| `margin_top` | 0 | Distance from the top screen edge |
+| `margin_bottom` | 5 | Distance from the bottom screen edge |
+| `margin_left` / `margin_right` | 18 | Horizontal distance from screen edges |
 | `overlap_gap` | 50 | Gap maintained when lines would overlap |
 | `truncation_priority` | center | Which part of a long line is truncated |
 
-All progress-bar slots are present but disabled in both presets.
+All progress-bar slots are present but disabled in both presets, no line
+pins a font face (lines follow the Bookends default font, or the book's own
+font with [`2-bookend-unifont.lua`](patches/2-bookend-unifont.md) enabled).
 
 ## manga
 
@@ -42,30 +45,21 @@ everything:
 
 | Position | Line | Shows |
 | --- | --- | --- |
-| Bottom-left | `%batt_icon%batt ⋮ %wifi ⋮ %time_24h ` | Battery, wifi state, 24h clock |
+| Bottom-left | `%batt_icon%batt \| %wifi \| %time_24h` | Battery, wifi state, 24h clock |
 | Bottom-center | `— Page %page_num of %page_count —` | Page counter |
 | Bottom-right | `%title \| %chap_title` | Book title and chapter |
 
-**Font caveat:** every bottom line pins its font to the Android path
-`/storage/emulated/0/koreader/fonts/Bookerly.ttf`. On non-Android devices
-(or without Bookerly installed) edit the preset file and fix or clear the
-`line_font_face` entries; an empty entry falls back to the Bookends default
-font. Alternatively clear them and enable the
-[`2-bookend-unifont.lua`](patches/2-bookend-unifont.md) toggle, which
-overrides line fonts with the book's own font at render time anyway.
-
 ## novel
 
-Uses the top corners for book context and keeps the bottom row minimal. No
-fonts are pinned; lines follow the Bookends default font.
+Uses the top corners for book context and adds session stats at the bottom.
 
 | Position | Line | Shows |
 | --- | --- | --- |
 | Top-left | `%author - %title` | Author and book title |
 | Top-right | `%chap_title` | Current chapter |
-| Bottom-left | `%batt_icon%batt ⋮ %wifi` | Battery and wifi state |
+| Bottom-left | `%batt_icon%batt \| %wifi \| %time_24h` | Battery, wifi state, 24h clock |
 | Bottom-center | `— Page %page_num of %page_count —` | Page counter |
-| Bottom-right | `%time_24h` | 24h clock |
+| Bottom-right | `⌛ %session_time » %session_pages page session` | Reading-session duration and pages |
 
 The top-center position is disabled in both presets (it holds a leftover
 clock/date line kept for reference).
