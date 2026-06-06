@@ -3,10 +3,10 @@ return {
     defaults = {
         font_scale = 100,
         font_size = 11,
-        margin_bottom = 10,
-        margin_left = 28,
-        margin_right = 28,
-        margin_top = 10,
+        margin_bottom = 5,
+        margin_left = 18,
+        margin_right = 18,
+        margin_top = 0,
         overlap_gap = 50,
         truncation_priority = "center",
     },
@@ -20,7 +20,6 @@ return {
             line_bar_type = {
             },
             line_font_face = {
-                "/storage/emulated/0/koreader/fonts/Bookerly.ttf",
             },
             line_font_size = {
                 11,
@@ -47,7 +46,6 @@ return {
             line_bar_type = {
             },
             line_font_face = {
-                "/storage/emulated/0/koreader/fonts/Bookerly.ttf",
             },
             line_font_size = {
             },
@@ -62,7 +60,7 @@ return {
             line_v_nudge = {
             },
             lines = {
-                "%batt_icon%batt ⋮ %wifi ⋮ %time_24h ",
+                "%batt_icon%batt | %wifi | %time_24h",
             },
         },
         br = {
@@ -73,7 +71,6 @@ return {
             line_bar_type = {
             },
             line_font_face = {
-                "/storage/emulated/0/koreader/fonts/Bookerly.ttf",
             },
             line_font_size = {
                 11,
@@ -113,7 +110,6 @@ return {
             line_bar_type = {
             },
             line_font_face = {
-                "/storage/emulated/0/koreader/fonts/Bookerly.ttf",
             },
             line_font_size = {
                 11,
@@ -141,7 +137,6 @@ return {
             line_bar_type = {
             },
             line_font_face = {
-                "/storage/emulated/0/koreader/fonts/Bookerly.ttf",
             },
             line_font_size = {
             },

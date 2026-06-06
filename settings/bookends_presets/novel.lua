@@ -1,31 +1,25 @@
 -- Bookends preset: novel
 return {
+    author = "kurokeita",
     defaults = {
         font_scale = 100,
         font_size = 11,
-        margin_bottom = 10,
-        margin_left = 28,
-        margin_right = 28,
-        margin_top = 10,
+        margin_bottom = 5,
+        margin_left = 18,
+        margin_right = 18,
+        margin_top = 0,
         overlap_gap = 50,
         truncation_priority = "center",
     },
+    description = "simple bars for novel",
     name = "novel",
     positions = {
         bc = {
-            line_bar_chapter_ticks = {
-            },
-            line_bar_colors = {
-            },
-            line_bar_direction = {
-            },
             line_bar_height = {
             },
             line_bar_style = {
             },
             line_bar_type = {
-            },
-            line_bar_unread_height = {
             },
             line_font_face = {
             },
@@ -47,19 +41,11 @@ return {
             },
         },
         bl = {
-            line_bar_chapter_ticks = {
-            },
-            line_bar_colors = {
-            },
-            line_bar_direction = {
-            },
             line_bar_height = {
             },
             line_bar_style = {
             },
             line_bar_type = {
-            },
-            line_bar_unread_height = {
             },
             line_font_face = {
             },
@@ -76,23 +62,15 @@ return {
             line_v_nudge = {
             },
             lines = {
-                "%batt_icon%batt ⋮ %wifi",
+                "%batt_icon%batt | %wifi | %time_24h",
             },
         },
         br = {
-            line_bar_chapter_ticks = {
-            },
-            line_bar_colors = {
-            },
-            line_bar_direction = {
-            },
             line_bar_height = {
             },
             line_bar_style = {
             },
             line_bar_type = {
-            },
-            line_bar_unread_height = {
             },
             line_font_face = {
             },
@@ -110,7 +88,7 @@ return {
             line_v_nudge = {
             },
             lines = {
-                "%time_24h",
+                "⌛ %session_time » %session_pages page session",
             },
         },
         tc = {
@@ -126,19 +104,11 @@ return {
             },
         },
         tl = {
-            line_bar_chapter_ticks = {
-            },
-            line_bar_colors = {
-            },
-            line_bar_direction = {
-            },
             line_bar_height = {
             },
             line_bar_style = {
             },
             line_bar_type = {
-            },
-            line_bar_unread_height = {
             },
             line_font_face = {
             },
@@ -160,19 +130,11 @@ return {
             },
         },
         tr = {
-            line_bar_chapter_ticks = {
-            },
-            line_bar_colors = {
-            },
-            line_bar_direction = {
-            },
             line_bar_height = {
             },
             line_bar_style = {
             },
             line_bar_type = {
-            },
-            line_bar_unread_height = {
             },
             line_font_face = {
             },

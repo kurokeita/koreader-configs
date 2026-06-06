@@ -13,6 +13,7 @@ A release bundle unzips to a single directory named
 | `patches/` | All userpatches from this repo |
 | `icons/` | SVG overrides for KOReader's `mdlight` icon set |
 | `plugins/` | The pinned upstream plugins, one `*.koplugin/` folder each |
+| `settings/` | Bookends presets (see [settings.md](settings.md)) |
 | `VERSIONS.txt` | Exact plugin tags and the KOReader version targeted |
 | `INSTALL.txt` | Offline copy of the basic install steps |
 
@@ -34,6 +35,7 @@ A release bundle unzips to a single directory named
    | `patches/*` | `koreader/patches/` |
    | `plugins/*.koplugin/` (each folder, whole) | `koreader/plugins/` |
    | `icons/*` | `koreader/resources/icons/mdlight/` |
+   | `settings/*` | `koreader/settings/` (optional Bookends presets) |
 
    The icons are overrides for the `mdlight` set specifically; if you use a
    different icon set, skip them (some patches then fall back or warn, see
@@ -44,7 +46,8 @@ A release bundle unzips to a single directory named
 ## Option B: manual install
 
 1. Clone or download this repo.
-2. Copy `patches/` and `icons/` to the device exactly as in the table above.
+2. Copy `patches/`, `icons/`, and `settings/` to the device exactly as in
+   the table above.
 3. Install each plugin from its upstream Releases page, at **exactly the
    tag pinned in [`plugins/manifest.yml`](../plugins/manifest.yml)**:
 

@@ -43,6 +43,7 @@ STAGING="$OUT_DIR/staging/$BUNDLE_NAME"
 mkdir -p "$STAGING/plugins"
 cp -R "$REPO_ROOT/icons" "$STAGING/icons"
 cp -R "$REPO_ROOT/patches" "$STAGING/patches"
+cp -R "$REPO_ROOT/settings" "$STAGING/settings"
 
 {
   echo "koreader-configs $RELEASE_TAG for KOReader $KO_VER ($CODENAME)"
