@@ -28,7 +28,8 @@ cache is pruned to the single font in use.
 
 ## Settings
 
-Menu path: `Top menu > Bookends > Bookends settings > Use book's embedded font`
+Menu path (with a book open):
+`Top menu > typeset/document tab (style icon) > Bookends > Bookends settings > Use book's embedded font`
 (inserted directly above the stock "Default font" entry).
 
 | Option | Default | What it does | Recommended |

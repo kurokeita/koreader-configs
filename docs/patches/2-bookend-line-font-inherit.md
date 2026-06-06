@@ -24,7 +24,8 @@ Default font setting itself) are left untouched.
 ## Settings
 
 No settings of its own. The patch only changes the behavior of an existing
-dialog: `Top menu > Bookends > (edit a position) > (line) > Font`.
+dialog: with a book open,
+`Top menu > typeset/document tab (style icon) > Bookends > (edit a position) > (line) > Font`.
 
 - "Inherit (use default font)" row: stores no override, the line follows the
   Bookends default font.
