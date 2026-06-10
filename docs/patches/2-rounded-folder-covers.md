@@ -25,13 +25,20 @@ With `prewarm_folder_covers` enabled (default), a background walker
 pre-builds the covers of **every** folder under the home directory at the
 current grid cell size, two folders per 0.2s scheduler tick, so first
 visits to new pages draw from cache too. Changing items-per-page restarts
-the walk at the new size automatically. The walk pauses while a book is
-open and resumes on the next folder draw. Folders without a cover of
+the walk at the new size automatically. Folders without a cover of
 their own get PT's collage fallback pre-warmed instead (effective when
 `2-pt-foldercover-perf.lua` is installed). `cover_cache_entries` (default
 500) bounds how many pre-scaled covers stay in memory: raise it if your
 library has more folders, at roughly 100-400KB per folder depending on
 cell size and screen type.
+
+When PT's **"Scan home folder for new books automatically"**
+(`autoscan_on_eject`) is enabled, the walk additionally starts ~10s after
+app startup, in the background, even when KOReader opens straight into a
+book. The grid cell size is then taken from the last session (persisted
+as `rfc_prewarm_dims` in PT's settings store by every folder draw); on
+the very first session there is nothing persisted yet, so the startup
+warm begins with the first folder draw instead.
 
 The patch also memoizes `FileChooser:getListItem` results to keep folder
 scanning cheap while covers are resolved.

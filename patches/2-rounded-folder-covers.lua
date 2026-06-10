@@ -361,6 +361,8 @@ local function patchCoverBrowser(plugin)
     end
 
     local function getFolderCoverBB(dir_path, target_w, target_h)
+        -- floor so cache keys match between draw-time and prewarm callers
+        target_w, target_h = math.floor(target_w), math.floor(target_h)
         local src = folder_src_cache[dir_path]
         if src == nil then
             src = resolveSource(dir_path)
@@ -417,11 +419,6 @@ local function patchCoverBrowser(plugin)
     end
 
     local function prewarmStep()
-        local FileManager = require("apps/filemanager/filemanager")
-        if not FileManager.instance then -- reading: pause, resume on next folder draw
-            prewarm.running = false
-            return
-        end
         if not prewarm.queue or prewarm.next_idx > #prewarm.queue then
             logger.info("rounded-folder-covers: prewarm done,",
                 prewarm.queue and #prewarm.queue or 0, "folders")
@@ -449,28 +446,66 @@ local function patchCoverBrowser(plugin)
         UIManager:scheduleIn(PREWARM_INTERVAL, prewarmStep)
     end
 
-    -- Called from every folder draw with the current cell size. Rebuilds
-    -- the queue when the size changes, restarts a paused walk otherwise.
-    local function kickPrewarm(cell_w, cell_h)
-        local frame_dimen = getAspectRatioAdjustedDimensions(cell_w, cell_h, 0)
-        local dims_key = frame_dimen.w .. "x" .. frame_dimen.h
-        if prewarm.dims_key ~= dims_key then
-            local home_dir = G_reader_settings:readSetting("home_dir")
-            if not home_dir or lfs.attributes(home_dir, "mode") ~= "directory" then
-                return -- no home folder set, nothing to walk
-            end
-            prewarm.dims_key = dims_key
-            prewarm.w, prewarm.h = frame_dimen.w, frame_dimen.h
-            prewarm.pt_w = cell_w - 2 * Size.border.thin -- dims PT's update passes
-            prewarm.pt_h = cell_h - 2 * Size.border.thin -- to getSubfolderCoverImages
-            prewarm.queue = listAllDirs(home_dir)
-            prewarm.next_idx = 1
-            logger.info("rounded-folder-covers: prewarming", #prewarm.queue,
-                "folder covers at", dims_key)
+    local function startPrewarmQueue()
+        local home_dir = G_reader_settings:readSetting("home_dir")
+        if not home_dir or lfs.attributes(home_dir, "mode") ~= "directory" then
+            return -- no home folder set, nothing to walk
         end
-        if not prewarm.running and prewarm.queue and prewarm.next_idx <= #prewarm.queue then
+        prewarm.queue = listAllDirs(home_dir)
+        prewarm.next_idx = 1
+        logger.info(string.format("rounded-folder-covers: prewarming %d folder covers at %s",
+            #prewarm.queue, tostring(prewarm.dims_key)))
+        if not prewarm.running and #prewarm.queue > 0 then
             prewarm.running = true
             UIManager:scheduleIn(PREWARM_INTERVAL, prewarmStep)
+        end
+    end
+
+    -- Called from every folder draw with the current cell size. Rebuilds
+    -- the queue when the size changes, restarts a paused walk otherwise.
+    -- The dimensions are persisted in PT's settings store so the startup
+    -- job (below) can warm at the right size before any draw happens.
+    local function kickPrewarm(cell_w, cell_h)
+        local frame_dimen = getAspectRatioAdjustedDimensions(cell_w, cell_h, 0)
+        local fw, fh = math.floor(frame_dimen.w), math.floor(frame_dimen.h)
+        local dims_key = fw .. "x" .. fh
+        if prewarm.dims_key ~= dims_key then
+            prewarm.dims_key = dims_key
+            prewarm.w, prewarm.h = fw, fh
+            prewarm.pt_w = math.floor(cell_w - 2 * Size.border.thin) -- dims PT's update passes
+            prewarm.pt_h = math.floor(cell_h - 2 * Size.border.thin) -- to getSubfolderCoverImages
+            if BookInfoManager:getSetting("rfc_prewarm_dims") ~=
+                    table.concat({ prewarm.w, prewarm.h, prewarm.pt_w, prewarm.pt_h }, ",") then
+                BookInfoManager:saveSetting("rfc_prewarm_dims",
+                    table.concat({ prewarm.w, prewarm.h, prewarm.pt_w, prewarm.pt_h }, ","))
+            end
+            startPrewarmQueue()
+        elseif not prewarm.running and prewarm.queue and prewarm.next_idx <= #prewarm.queue then
+            prewarm.running = true
+            UIManager:scheduleIn(PREWARM_INTERVAL, prewarmStep)
+        end
+    end
+
+    -- Startup pre-warm: when PT's "Scan home folder for new books
+    -- automatically" is enabled, also build the folder-cover cache right
+    -- after startup, in the background, using the persisted cell size
+    -- from the last session. Works even when KOReader starts straight
+    -- into a book; a later folder draw with different dimensions simply
+    -- restarts the walk.
+    if prewarm_folder_covers and BookInfoManager:getSetting("autoscan_on_eject") then
+        local dims = BookInfoManager:getSetting("rfc_prewarm_dims")
+        local w, h, pt_w, pt_h
+        if type(dims) == "string" then
+            w, h, pt_w, pt_h = dims:match("^(%d+),(%d+),(%d+),(%d+)$")
+        end
+        if w then
+            UIManager:scheduleIn(10, function() -- let startup and autoscan settle first
+                if prewarm.dims_key then return end -- a folder draw beat us to it
+                prewarm.dims_key = w .. "x" .. h
+                prewarm.w, prewarm.h = tonumber(w), tonumber(h)
+                prewarm.pt_w, prewarm.pt_h = tonumber(pt_w), tonumber(pt_h)
+                startPrewarmQueue()
+            end)
         end
     end
 
