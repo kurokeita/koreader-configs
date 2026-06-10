@@ -2,19 +2,30 @@
 
 Enables Project: Title's built-in draw timers (`ptdbg.enabled`). With the
 patch installed, PT logs how long each file-browser page and each item takes
-to build, at info level in `crash.log`:
+to build:
 
 ```text
-Project: Title - Draw grid item <name> done in 42.317
-Project: Title - Draw whole page done in 481.205
-Project: Title - Cache book <path> done in 1203.880
+Draw grid item <name> done in 42.317 ms
+Draw whole page done in 481.205 ms
+genItemTable(/sdcard/Books): 124 items in 310.221 ms
+patch status: foldercover-perf=true bookinfo-cache=true rounded-folder-covers=true
 ```
 
+Timings go to the normal log (crash.log on e-ink devices, logcat on
+Android) **and** to a plain file `pt-profile.log` in the koreader data
+directory, next to `patches/`, so they are readable on Android without
+adb. The file is recreated on each restart and additionally records:
+
+- a `patch status:` line (~5s after startup) showing which of this repo's
+  PT performance patches actually took effect on the device;
+- `genItemTable(...)` lines timing item-table generation per navigation
+  (folder counting and sorting), a cost PT's own draw timers do not cover.
+
 This is a diagnostic patch for investigating file-browser sluggishness:
-install it, reproduce the slow navigation, read the timings out of
-`crash.log`, then remove the patch. Leaving it installed permanently is
-harmless but adds a little overhead per draw and grows `crash.log` quickly
-(one line per visible item per page draw).
+install it, reproduce the slow navigation, read the timings, then remove
+the patch. Leaving it installed permanently is harmless but adds a little
+overhead per draw and the log file grows quickly (one line per visible
+item per page draw).
 
 ## Target
 
