@@ -7,6 +7,19 @@ with a log warning if PT's internals have moved; neither changes anything
 visual except that auto folder-cover thumbnails stop reshuffling between
 page draws.
 
+Section 0 - shared cache-invalidation registry:
+All caches in this patch (and in 2-rounded-folder-covers.lua, when
+installed) register listeners on a single registry that wraps every PT
+code path that writes bookinfo rows: setBookInfoProperties (Ignore
+cover/metadata buttons), deleteBookInfo, deleteDb, background extraction
+(notified at subprocess COMPLETION via the reaper, since rows commit
+after extractInBackground returns), and batch indexing /
+autoscan (extractBooksInDirectory, notified when the whole run ends).
+While any extraction may still be writing rows, negative lookups ("this
+folder has no covers") are not cached, so results filled in by a running
+scan appear without a restart. The registry is installed idempotently by
+whichever patch loads first.
+
 Section 1 - blob-free metadata queries and an in-memory cache:
 PT's single prepared SELECT fetches every bookinfo column, including the
 zstd-compressed cover blob (50-200KB per row), even for metadata-only
@@ -15,11 +28,10 @@ MosaicMenuItem:paintTo re-queries on every repaint of every visible book,
 and PT's custom sort collates query once per file each time a folder's
 item table is generated. This section wraps BookInfoManager:getBookInfo so
 metadata-only lookups use a separate prepared statement that excludes the
-cover columns and are served from a bounded in-memory cache keyed by
-filepath (callers get a shallow copy because PT mutates returned tables).
-Books not yet in the DB are never cached, so background extraction results
-still show up. Cover lookups (get_cover=true) and Kobo virtual-library
-paths pass through untouched.
+cover columns and are served from a two-generation in-memory cache keyed
+by filepath (callers get a shallow copy because PT mutates returned
+tables). Books not yet in the DB are never cached. Cover lookups
+(get_cover=true) and Kobo virtual-library paths pass through untouched.
 
 Section 2 - cached auto-generated folder covers:
 PT rebuilds every folder tile from scratch on every page draw: a directory
@@ -29,24 +41,113 @@ book under the folder), and up to four cover blobs zstd-decompressed and
 rescaled. This section replaces the folder-cover helpers in ptutil to
 query deterministically on the dir_filename index, reuse BookInfoManager's
 shared DB connection, cache the chosen cover paths per folder and the
-scaled thumbnails per book+size, and cache cover-file probe results and
-image dimensions. Invalidation is scoped: extracting or refreshing books
-drops only the affected files' thumbnails and their ancestor folders'
-cached picks; emptying the cache database clears everything. Evicted
-thumbnails are reclaimed by GC (never freed explicitly, as live widgets
-may still reference them).
+scaled thumbnails per book+size (byte-budgeted, reclaimed by GC, never
+freed explicitly since live widgets may reference them), and cache
+cover-file probe results and image dimensions (mtime-keyed; a deleted
+cover file is detected and re-probed).
 
 Targets:
   - coverbrowser @ joshuacant/ProjectTitle 2026.03-v3.7
-    (BookInfoManager.getBookInfo/getDocProps/closeDbConnection and
-    cache-mutating methods wrapped, column layout discovered via the
-    BOOKINFO_COLS_SET upvalue; ptutil.query_cover_paths,
-    ptutil.build_cover_images, ptutil.getSubfolderCoverImages,
-    ptutil.getFolderCover replaced)
+    (BookInfoManager query/lifecycle/mutation methods wrapped, column
+    layout discovered via the BOOKINFO_COLS_SET upvalue;
+    ptutil.query_cover_paths, ptutil.build_cover_images,
+    ptutil.getSubfolderCoverImages, ptutil.getFolderCover replaced)
 --]]
 
 local userpatch = require("userpatch")
 local logger = require("logger")
+
+-- Section 0: shared invalidation registry. Idempotent; an identical
+-- installer ships in 2-rounded-folder-covers.lua so either patch works
+-- standalone (the duplication is the price of self-contained userpatches).
+-- Listeners receive a list of filepaths, or nil meaning "clear everything".
+local function installInvalidationRegistry(BookInfoManager)
+    if BookInfoManager._cache_registry_installed then return end
+    BookInfoManager._cache_registry_installed = true
+    BookInfoManager._cache_listeners = {}
+
+    local function notify(files)
+        for _, listener in ipairs(BookInfoManager._cache_listeners) do
+            local ok, err = pcall(listener, files)
+            if not ok then
+                logger.warn("pt-perf: cache listener error:", err)
+            end
+        end
+    end
+    BookInfoManager._notifyCacheListeners = notify
+
+    -- True while some extraction may still be writing rows; caches must
+    -- not store negative results ("no cover found") during that window.
+    local bg_pending_files = nil
+    local batch_depth = 0
+    function BookInfoManager._extractionMayBeWriting()
+        return bg_pending_files ~= nil or batch_depth > 0
+    end
+
+    local orig_setProps = BookInfoManager.setBookInfoProperties
+    function BookInfoManager:setBookInfoProperties(filepath, props)
+        orig_setProps(self, filepath, props)
+        notify({ filepath })
+    end
+
+    local orig_deleteBookInfo = BookInfoManager.deleteBookInfo
+    function BookInfoManager:deleteBookInfo(filepath)
+        orig_deleteBookInfo(self, filepath)
+        notify({ filepath })
+    end
+
+    local orig_deleteDb = BookInfoManager.deleteDb
+    function BookInfoManager:deleteDb()
+        orig_deleteDb(self)
+        notify(nil)
+    end
+
+    -- Background extraction commits rows from a forked subprocess AFTER
+    -- extractInBackground returns, so invalidation must fire at
+    -- completion: the zombie reaper observes the last subprocess exit.
+    local orig_extractInBackground = BookInfoManager.extractInBackground
+    function BookInfoManager:extractInBackground(files)
+        local launched = orig_extractInBackground(self, files)
+        if launched then
+            bg_pending_files = bg_pending_files or {}
+            for i = 1, #files do
+                table.insert(bg_pending_files, files[i].filepath or files[i])
+            end
+        end
+        return launched
+    end
+
+    local orig_collectSubprocesses = BookInfoManager.collectSubprocesses
+    function BookInfoManager:collectSubprocesses()
+        orig_collectSubprocesses(self)
+        if bg_pending_files and #self.subprocesses_pids == 0 then
+            local done = bg_pending_files
+            bg_pending_files = nil
+            notify(done)
+        end
+    end
+
+    -- Batch indexing (home-folder autoscan, "Extract and cache book
+    -- information") writes rows in-process via Trapper subprocesses and
+    -- can touch the whole library: clear everything when it finishes.
+    local orig_extractBooksInDirectory = BookInfoManager.extractBooksInDirectory
+    function BookInfoManager:extractBooksInDirectory(...)
+        batch_depth = batch_depth + 1
+        local ok, err = pcall(orig_extractBooksInDirectory, self, ...)
+        batch_depth = math.max(0, batch_depth - 1)
+        notify(nil)
+        if not ok then error(err, 0) end
+    end
+end
+
+-- Iterate a file's ancestor directories ("/a/b/c.epub" -> "/a/b", "/a").
+local function eachParentDir(filepath, fn)
+    local dir = filepath:match("^(.+)/[^/]+$")
+    while dir and dir ~= "" do
+        fn(dir)
+        dir = dir:match("^(.+)/[^/]+$")
+    end
+end
 
 -- Section 1: blob-free metadata queries and an in-memory cache for
 -- BookInfoManager lookups.
@@ -63,6 +164,7 @@ local function patchBookInfoCache(plugin)
         return
     end
     BookInfoManager._bookinfo_cache_patched = true
+    installInvalidationRegistry(BookInfoManager)
 
     local DocumentRegistry = require("document/documentregistry")
     local lfs = require("libs/libkoreader-lfs")
@@ -80,17 +182,50 @@ local function patchBookInfoCache(plugin)
 
     local KOBO_VIRTUAL_PREFIX = "KOBO_VIRTUAL://"
 
-    -- filepath -> canonical metadata table. Bounded; cleared wholesale on
-    -- overflow or invalidation (rebuilding is cheap with the blob-free
-    -- statement).
-    local meta_cache = {}
-    local meta_count = 0
-    local META_CACHE_MAX = 1000
+    -- filepath -> canonical metadata table, in two generations so an
+    -- overflow drops the oldest half instead of the whole cache (whole-
+    -- library iterations like PT's sort collates would otherwise dump
+    -- still-hot entries mid-pass).
+    local meta_hot, meta_cold = {}, {}
+    local meta_hot_count = 0
+    local META_GEN_MAX = 500
 
-    local function cacheClear()
-        meta_cache = {}
-        meta_count = 0
+    local function metaCacheGet(filepath)
+        local t = meta_hot[filepath]
+        if t then return t end
+        t = meta_cold[filepath]
+        if t then -- promote
+            meta_cold[filepath] = nil
+            meta_hot[filepath] = t
+            meta_hot_count = meta_hot_count + 1
+        end
+        return t
     end
+
+    local function metaCachePut(filepath, t)
+        if meta_hot_count >= META_GEN_MAX then
+            meta_cold = meta_hot
+            meta_hot = {}
+            meta_hot_count = 0
+        end
+        meta_hot[filepath] = t
+        meta_hot_count = meta_hot_count + 1
+    end
+
+    table.insert(BookInfoManager._cache_listeners, function(files)
+        if not files then
+            meta_hot, meta_cold = {}, {}
+            meta_hot_count = 0
+            return
+        end
+        for i = 1, #files do
+            local fp = files[i]
+            if type(fp) == "string" then
+                meta_hot[fp] = nil
+                meta_cold[fp] = nil
+            end
+        end
+    end)
 
     local function shallowCopy(t)
         local c = {}
@@ -113,7 +248,7 @@ local function patchBookInfoCache(plugin)
                 or filepath:sub(1, #KOBO_VIRTUAL_PREFIX) == KOBO_VIRTUAL_PREFIX then
             return orig_getBookInfo(self, filepath, get_cover)
         end
-        local cached = meta_cache[filepath]
+        local cached = metaCacheGet(filepath)
         if cached then
             return shallowCopy(cached)
         end
@@ -144,11 +279,7 @@ local function patchBookInfoCache(plugin)
         end
         self.get_meta_stmt:clearbind():reset()
 
-        if meta_count >= META_CACHE_MAX then
-            cacheClear()
-        end
-        meta_cache[filepath] = bookinfo
-        meta_count = meta_count + 1
+        metaCachePut(filepath, bookinfo)
         return shallowCopy(bookinfo)
     end
 
@@ -161,16 +292,6 @@ local function patchBookInfoCache(plugin)
         end
         props.pages = tonumber(props.pages)
         return props
-    end
-
-    -- Invalidate on anything that rewrites existing rows. New rows (first
-    -- extraction) need no invalidation because misses are never cached.
-    for _, method in ipairs({ "setBookInfoProperties", "deleteBookInfo", "deleteDb" }) do
-        local orig = BookInfoManager[method]
-        BookInfoManager[method] = function(self, ...)
-            cacheClear()
-            return orig(self, ...)
-        end
     end
 
     logger.info("pt-perf: blob-free metadata queries and caching enabled")
@@ -194,6 +315,7 @@ local function patchFolderCovers(plugin)
         end
     end
     ptutil._foldercover_perf_patched = true
+    installInvalidationRegistry(BookInfoManager)
 
     -- ptutil.make_sql_safe only exists in PT releases newer than
     -- 2026.03-v3.7; inline the same escaping as a fallback.
@@ -208,87 +330,85 @@ local function patchFolderCovers(plugin)
     local ImageWidget = require("ui/widget/imagewidget")
     local RenderImage = require("ui/renderimage")
     local Size = require("ui/size")
+    local lfs = require("libs/libkoreader-lfs")
     local util = require("util")
 
     -- folder path -> exec result ({dirs, filenames}) of chosen covers, or
-    -- false when the folder yielded none (so we don't re-query every draw)
+    -- false when the folder yielded none (negative results are not cached
+    -- while an extraction may still be writing rows)
     local folder_covers_cache = {}
     -- folder path -> cover file path found by findCover, or false for none
     local cover_file_cache = {}
-    -- image file path -> { w, h } original dimensions
+    -- "imagefile|mtime" -> { w, h } original dimensions
     local img_dims_cache = {}
-    -- "bookpath|WxH" -> pre-scaled cover BlitBuffer, in two generations:
-    -- inserts go to the hot table; when it fills, it becomes the cold one
-    -- and the oldest generation is dropped. Keeps the most recent ~100-200
-    -- thumbs without ever wholesale-clearing on a page draw. We never free
-    -- the buffers explicitly: a live ImageWidget may still hold one, so
-    -- eviction just drops the reference and GC reclaims it (cover bbs are
-    -- allocated, see BookInfoManager:getBookInfo).
+    -- bookpath -> { ["WxH"] = pre-scaled cover BlitBuffer }, in two
+    -- byte-budgeted generations: inserts go to the hot table; when its
+    -- budget fills, it becomes the cold one and the oldest generation is
+    -- dropped. We never free the buffers explicitly: a live ImageWidget
+    -- may still hold one, so eviction just drops the reference and GC
+    -- reclaims it (cover bbs are allocated, see BookInfoManager:getBookInfo).
     local thumb_hot, thumb_cold = {}, {}
-    local thumb_hot_count = 0
-    local THUMB_GEN_MAX = 100
+    local thumb_hot_bytes = 0
+    local THUMB_GEN_MAX_BYTES = 4 * 1024 * 1024 -- per generation
 
-    local function thumbCacheGet(key)
-        local bb = thumb_hot[key]
+    local function bbBytes(bb)
+        return (tonumber(bb.stride) or 0) * bb:getHeight()
+    end
+
+    local function thumbCacheGet(fullpath, sizekey)
+        local sizes = thumb_hot[fullpath]
+        local bb = sizes and sizes[sizekey]
         if bb then return bb end
-        bb = thumb_cold[key]
+        sizes = thumb_cold[fullpath]
+        bb = sizes and sizes[sizekey]
         if bb then -- promote, so it survives the next rotation
-            thumb_cold[key] = nil
-            thumb_hot[key] = bb
-            thumb_hot_count = thumb_hot_count + 1
+            sizes[sizekey] = nil
+            local hot = thumb_hot[fullpath]
+            if not hot then
+                hot = {}
+                thumb_hot[fullpath] = hot
+            end
+            hot[sizekey] = bb
+            thumb_hot_bytes = thumb_hot_bytes + bbBytes(bb)
         end
         return bb
     end
 
-    local function thumbCachePut(key, bb)
-        if thumb_hot_count >= THUMB_GEN_MAX then
+    local function thumbCachePut(fullpath, sizekey, bb)
+        if thumb_hot_bytes >= THUMB_GEN_MAX_BYTES then
             thumb_cold = thumb_hot
             thumb_hot = {}
-            thumb_hot_count = 0
+            thumb_hot_bytes = 0
         end
-        thumb_hot[key] = bb
-        thumb_hot_count = thumb_hot_count + 1
+        local hot = thumb_hot[fullpath]
+        if not hot then
+            hot = {}
+            thumb_hot[fullpath] = hot
+        end
+        hot[sizekey] = bb
+        thumb_hot_bytes = thumb_hot_bytes + bbBytes(bb)
     end
 
-    local function clearCaches()
-        folder_covers_cache = {}
-        cover_file_cache = {}
-        img_dims_cache = {}
-        thumb_hot, thumb_cold = {}, {}
-        thumb_hot_count = 0
-    end
-
-    -- Targeted invalidation: drop the given files' thumbnails and the
-    -- cached cover picks of any folder containing them. Called when PT
-    -- (re-)extracts or deletes individual books; everything else stays
-    -- warm. `files` entries are {filepath=...} tables or plain strings.
-    local function invalidateForFiles(files)
-        local dropped = 0
+    table.insert(BookInfoManager._cache_listeners, function(files)
+        if not files then
+            folder_covers_cache = {}
+            cover_file_cache = {}
+            img_dims_cache = {}
+            thumb_hot, thumb_cold = {}, {}
+            thumb_hot_bytes = 0
+            return
+        end
         for i = 1, #files do
-            local filepath = type(files[i]) == "table" and files[i].filepath or files[i]
+            local filepath = files[i]
             if type(filepath) == "string" then
-                local thumb_prefix = filepath .. "|"
-                for _, gen in ipairs({ thumb_hot, thumb_cold }) do
-                    for key in pairs(gen) do
-                        if key:sub(1, #thumb_prefix) == thumb_prefix then
-                            gen[key] = nil -- clearing existing keys during pairs() is allowed
-                        end
-                    end
-                end
-                for folder in pairs(folder_covers_cache) do
-                    local folder_prefix = folder .. "/"
-                    if filepath:sub(1, #folder_prefix) == folder_prefix then
-                        folder_covers_cache[folder] = nil
-                        dropped = dropped + 1
-                    end
-                end
+                thumb_hot[filepath] = nil -- bytes accounting drifts low; fine, it only delays rotation
+                thumb_cold[filepath] = nil
+                eachParentDir(filepath, function(dir)
+                    folder_covers_cache[dir] = nil
+                end)
             end
         end
-        if dropped > 0 then
-            logger.info("pt-perf: invalidated", dropped,
-                "cached folder cover(s) after bookinfo update")
-        end
-    end
+    end)
 
     -- Deterministic query on the dir_filename index, shared connection.
     -- LIMIT 8 leaves headroom over the 4 covers needed in case some files
@@ -315,8 +435,8 @@ local function patchFolderCovers(plugin)
     end
 
     local function getThumb(fullpath, max_img_w, max_img_h)
-        local key = fullpath .. "|" .. math.floor(max_img_w) .. "x" .. math.floor(max_img_h)
-        local bb = thumbCacheGet(key)
+        local sizekey = math.floor(max_img_w) .. "x" .. math.floor(max_img_h)
+        local bb = thumbCacheGet(fullpath, sizekey)
         if bb then return bb end
         local bookinfo = BookInfoManager:getBookInfo(fullpath, true)
         if not bookinfo or not bookinfo.cover_bb then return nil end
@@ -325,7 +445,7 @@ local function patchFolderCovers(plugin)
         bb = RenderImage:scaleBlitBuffer(bookinfo.cover_bb,
             math.floor(bookinfo.cover_w * scale_factor),
             math.floor(bookinfo.cover_h * scale_factor), true) -- frees the 600px original
-        thumbCachePut(key, bb)
+        thumbCachePut(fullpath, sizekey, bb)
         return bb
     end
 
@@ -380,7 +500,12 @@ local function patchFolderCovers(plugin)
                 db_res = ptutil.query_cover_paths(filepath, true)
                 images = ptutil.build_cover_images(db_res, max_w, max_h)
             end
-            folder_covers_cache[filepath] = (#images > 0) and db_res or false
+            if #images > 0 then
+                folder_covers_cache[filepath] = db_res
+            elseif not BookInfoManager._extractionMayBeWriting() then
+                -- only cache "no covers" when no scan may be adding some
+                folder_covers_cache[filepath] = false
+            end
         end
         if #images == 0 then return nil end -- cached files may have vanished
         if BookInfoManager:getSetting("use_stacked_foldercovers") then
@@ -392,7 +517,9 @@ local function patchFolderCovers(plugin)
 
     -- Cover-file folder tiles: cache the directory probe and the image
     -- dimensions so each draw skips the lfs.dir scan and the throwaway
-    -- dimension-probing decode.
+    -- dimension-probing decode. A vanished cover file is detected by the
+    -- per-draw stat and re-probed; a replaced file gets fresh dimensions
+    -- via the mtime in the cache key.
     function ptutil.getFolderCover(filepath, max_img_w, max_img_h, pt_cover_path)
         local folder_image_file = pt_cover_path
         if not folder_image_file then
@@ -405,14 +532,21 @@ local function patchFolderCovers(plugin)
         end
         if folder_image_file == nil then return nil end
 
+        local mtime = lfs.attributes(folder_image_file, "modification")
+        if not mtime then -- cover file vanished: re-probe next draw
+            cover_file_cache[filepath] = nil
+            return nil
+        end
+
         local success, folder_image = pcall(function()
-            local dims = img_dims_cache[folder_image_file]
+            local dims_key = folder_image_file .. "|" .. mtime
+            local dims = img_dims_cache[dims_key]
             if not dims then
                 local temp_image = ImageWidget:new { file = folder_image_file, scale_factor = 1 }
                 temp_image:_render()
                 dims = { w = temp_image:getOriginalWidth(), h = temp_image:getOriginalHeight() }
                 temp_image:free()
-                img_dims_cache[folder_image_file] = dims
+                img_dims_cache[dims_key] = dims
             end
             local scale_to_fill = 0
             if dims.w and dims.h then
@@ -455,28 +589,6 @@ local function patchFolderCovers(plugin)
                 },
             }
         end
-    end
-
-    -- Invalidate when PT mutates the bookinfo cache, scoped to the files
-    -- actually touched: background extraction may add covers to their
-    -- containing folders, deletions/refreshes may change them. Only
-    -- emptying the whole cache database clears everything.
-    local orig_extractInBackground = BookInfoManager.extractInBackground
-    function BookInfoManager:extractInBackground(files)
-        invalidateForFiles(files)
-        return orig_extractInBackground(self, files)
-    end
-
-    local orig_deleteBookInfo = BookInfoManager.deleteBookInfo
-    function BookInfoManager:deleteBookInfo(filepath)
-        invalidateForFiles({ filepath })
-        return orig_deleteBookInfo(self, filepath)
-    end
-
-    local orig_deleteDb = BookInfoManager.deleteDb
-    function BookInfoManager:deleteDb()
-        clearCaches()
-        return orig_deleteDb(self)
     end
 
     logger.info("pt-perf: folder cover caching enabled")
