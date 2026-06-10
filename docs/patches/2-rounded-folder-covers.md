@@ -21,6 +21,18 @@ Caches invalidate per file when PT extracts or refreshes books; a changed
 therefore differ from the pre-cache behavior (which followed the current
 sort order): it is now stable across draws and sessions.
 
+With `prewarm_folder_covers` enabled (default), a background walker
+pre-builds the covers of **every** folder under the home directory at the
+current grid cell size, two folders per 0.2s scheduler tick, so first
+visits to new pages draw from cache too. Changing items-per-page restarts
+the walk at the new size automatically. The walk pauses while a book is
+open and resumes on the next folder draw. Folders without a cover of
+their own get PT's collage fallback pre-warmed instead (effective when
+`2-pt-foldercover-perf.lua` is installed). `cover_cache_entries` (default
+500) bounds how many pre-scaled covers stay in memory: raise it if your
+library has more folders, at roughly 100-400KB per folder depending on
+cell size and screen type.
+
 The patch also memoizes `FileChooser:getListItem` results to keep folder
 scanning cheap while covers are resolved.
 

@@ -60,6 +60,9 @@ local file_count_size = 14          -- font size of the file count badge
 local folder_font_size = 20         -- font size of the folder name
 local folder_border = 0.5           -- thickness of folder border
 local folder_name = true            -- set to false to remove folder title from the center
+local prewarm_folder_covers = true  -- pre-build all folder covers in the background
+local cover_cache_entries = 500     -- max pre-scaled folder covers kept in memory;
+                                    -- raise this if your library has more folders
 --======================================================================================
 
 local FolderCover = {
@@ -270,7 +273,7 @@ local function patchCoverBrowser(plugin)
     local folder_src_cache = {} -- dir -> {file=path} | {book=path} | false
     local bb_hot, bb_cold = {}, {} -- "src|mtime|WxH" -> pre-scaled BlitBuffer
     local bb_hot_count = 0
-    local BB_GEN_MAX = 60
+    local BB_GEN_MAX = math.max(60, math.ceil(cover_cache_entries / 2))
 
     local function bbCacheGet(key)
         local bb = bb_hot[key]
@@ -381,6 +384,96 @@ local function patchCoverBrowser(plugin)
         return nil
     end
 
+    -- Background pre-warm: walk every folder under the home directory and
+    -- build its cover at the current grid cell size, a small batch per
+    -- scheduler tick, so first visits to new pages draw from cache. Keyed
+    -- by cell dimensions: changing items-per-page restarts the walk at
+    -- the new size. Pauses while the file manager is closed (reading) and
+    -- resumes on the next folder draw.
+    local UIManager = require("ui/uimanager")
+    local prewarm = { dims_key = nil, queue = nil, next_idx = 1, running = false }
+    local PREWARM_BATCH = 2      -- folders per tick
+    local PREWARM_INTERVAL = 0.2 -- seconds between ticks
+
+    local function listAllDirs(root)
+        local dirs, pending = {}, { root }
+        while #pending > 0 do
+            local d = table.remove(pending)
+            local ok, iter, dir_obj = pcall(lfs.dir, d)
+            if ok then
+                for entry in iter, dir_obj do
+                    if entry ~= "." and entry ~= ".." and not entry:match("^%.")
+                            and not entry:match("%.sdr$") then
+                        local fullpath = d .. "/" .. entry
+                        if lfs.attributes(fullpath, "mode") == "directory" then
+                            table.insert(dirs, fullpath)
+                            table.insert(pending, fullpath)
+                        end
+                    end
+                end
+            end
+        end
+        return dirs
+    end
+
+    local function prewarmStep()
+        local FileManager = require("apps/filemanager/filemanager")
+        if not FileManager.instance then -- reading: pause, resume on next folder draw
+            prewarm.running = false
+            return
+        end
+        if not prewarm.queue or prewarm.next_idx > #prewarm.queue then
+            logger.info("rounded-folder-covers: prewarm done,",
+                prewarm.queue and #prewarm.queue or 0, "folders")
+            prewarm.running = false
+            return
+        end
+        for _ = 1, PREWARM_BATCH do
+            local dir_path = prewarm.queue[prewarm.next_idx]
+            if not dir_path then break end
+            prewarm.next_idx = prewarm.next_idx + 1
+            local src = folder_src_cache[dir_path]
+            if src == nil then
+                src = resolveSource(dir_path)
+                folder_src_cache[dir_path] = src
+            end
+            if src then
+                getFolderCoverBB(dir_path, prewarm.w, prewarm.h)
+            else
+                -- no cover of our own: warm PT's collage fallback instead
+                -- (cached by 2-pt-foldercover-perf when installed)
+                local ptutil = require("ptutil")
+                pcall(ptutil.getSubfolderCoverImages, dir_path, prewarm.pt_w, prewarm.pt_h)
+            end
+        end
+        UIManager:scheduleIn(PREWARM_INTERVAL, prewarmStep)
+    end
+
+    -- Called from every folder draw with the current cell size. Rebuilds
+    -- the queue when the size changes, restarts a paused walk otherwise.
+    local function kickPrewarm(cell_w, cell_h)
+        local frame_dimen = getAspectRatioAdjustedDimensions(cell_w, cell_h, 0)
+        local dims_key = frame_dimen.w .. "x" .. frame_dimen.h
+        if prewarm.dims_key ~= dims_key then
+            local home_dir = G_reader_settings:readSetting("home_dir")
+            if not home_dir or lfs.attributes(home_dir, "mode") ~= "directory" then
+                return -- no home folder set, nothing to walk
+            end
+            prewarm.dims_key = dims_key
+            prewarm.w, prewarm.h = frame_dimen.w, frame_dimen.h
+            prewarm.pt_w = cell_w - 2 * Size.border.thin -- dims PT's update passes
+            prewarm.pt_h = cell_h - 2 * Size.border.thin -- to getSubfolderCoverImages
+            prewarm.queue = listAllDirs(home_dir)
+            prewarm.next_idx = 1
+            logger.info("rounded-folder-covers: prewarming", #prewarm.queue,
+                "folder covers at", dims_key)
+        end
+        if not prewarm.running and prewarm.queue and prewarm.next_idx <= #prewarm.queue then
+            prewarm.running = true
+            UIManager:scheduleIn(PREWARM_INTERVAL, prewarmStep)
+        end
+    end
+
     -- Scoped invalidation, same policy as 2-pt-foldercover-perf: extracted
     -- or refreshed files drop their own buffers and the source pick of any
     -- cached ancestor folder.
@@ -440,6 +533,9 @@ local function patchCoverBrowser(plugin)
                 and not self._foldercover_processed and self.mandatory then
             dir_path = self.entry and self.entry.path
             if dir_path then
+                if prewarm_folder_covers then
+                    kickPrewarm(self.width, self.height)
+                end
                 local src = folder_src_cache[dir_path]
                 if src == nil then
                     src = resolveSource(dir_path)
