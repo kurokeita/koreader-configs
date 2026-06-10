@@ -78,6 +78,30 @@ local function enableProfiler(plugin)
             tostring(bim_ok and BookInfoManager._bookinfo_cache_patched or false),
             tostring(rounded)))
 
+        -- Which patch files did KOReader find and execute? (true = ran
+        -- without error; false = errored; absent = file not seen at all)
+        local up_ok, up = pcall(require, "userpatch")
+        if up_ok and type(up.execution_status) == "table" then
+            local entries = {}
+            for name, status in pairs(up.execution_status) do
+                table.insert(entries, name .. "=" .. tostring(status))
+            end
+            table.sort(entries)
+            fileLog("executed patches: " .. (#entries > 0 and table.concat(entries, ", ") or "(none)"))
+        end
+
+        -- Do the ptutil helpers that 2-pt-foldercover-perf's version guard
+        -- requires actually exist in the installed PT version?
+        if ptutil_ok then
+            local missing = {}
+            for _, fn in ipairs({ "query_cover_paths", "build_cover_images",
+                                  "getSubfolderCoverImages", "getFolderCover",
+                                  "make_sql_safe", "get_thumbnail_size", "findCover" }) do
+                if type(ptutil[fn]) ~= "function" then table.insert(missing, fn) end
+            end
+            fileLog("ptutil helpers missing: " .. (#missing > 0 and table.concat(missing, ", ") or "none"))
+        end
+
         local FileChooser = require("ui/widget/filechooser")
         local orig_genItemTable = FileChooser.genItemTable
         FileChooser.genItemTable = function(self, dirs, files, path)
