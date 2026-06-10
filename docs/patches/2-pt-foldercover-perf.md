@@ -31,10 +31,14 @@ that:
   with their own cover image, removing a directory scan and a throwaway
   full decode per draw.
 
-Caches are invalidated whenever PT mutates its bookinfo cache (background
-extraction, per-book refresh, cache emptying). The thumbnail cache holds at
-most 100 entries (roughly 25 folders); evicted buffers are reclaimed by GC
-rather than freed explicitly, since live widgets may still reference them.
+Invalidation is scoped to what actually changed: when PT extracts or
+refreshes books, only those files' thumbnails and the cached cover picks of
+folders containing them are dropped, so visiting a folder with a few
+un-indexed books no longer cools the cache for the rest of the library.
+Emptying PT's cache database still clears everything. The thumbnail cache
+keeps the most recent ~100-200 entries in two generations; evicted buffers
+are reclaimed by GC rather than freed explicitly, since live widgets may
+still reference them.
 
 ## Target
 

@@ -22,9 +22,11 @@ This patch replaces the folder-cover helpers in ptutil with versions that:
     with a cover.jpg stop re-scanning the directory and decoding the image
     twice per draw.
 
-Caches are invalidated whenever PT extracts new books or deletes/refreshes
-cached book info. Evicted thumbnails are reclaimed by GC (never freed
-explicitly, as live widgets may still reference them).
+Invalidation is scoped: when PT extracts or refreshes books, only the
+affected files' thumbnails and their ancestor folders' cached cover picks
+are dropped; everything else stays warm (emptying the whole cache database
+still clears everything). Evicted thumbnails are reclaimed by GC (never
+freed explicitly, as live widgets may still reference them).
 
 Targets:
   - coverbrowser @ joshuacant/ProjectTitle 2026.03-v3.7
@@ -67,20 +69,77 @@ local function patchFolderCovers(plugin)
     local cover_file_cache = {}
     -- image file path -> { w, h } original dimensions
     local img_dims_cache = {}
-    -- "bookpath|WxH" -> pre-scaled cover BlitBuffer. We never free these
-    -- explicitly: a live ImageWidget may still hold one, so eviction just
-    -- drops the reference and GC reclaims it (cover bbs are allocated, see
-    -- BookInfoManager:getBookInfo).
-    local thumb_cache = {}
-    local thumb_count = 0
-    local THUMB_CACHE_MAX = 100 -- ~25 folders' worth of quarter-tile thumbs
+    -- "bookpath|WxH" -> pre-scaled cover BlitBuffer, in two generations:
+    -- inserts go to the hot table; when it fills, it becomes the cold one
+    -- and the oldest generation is dropped. Keeps the most recent ~100-200
+    -- thumbs without ever wholesale-clearing on a page draw. We never free
+    -- the buffers explicitly: a live ImageWidget may still hold one, so
+    -- eviction just drops the reference and GC reclaims it (cover bbs are
+    -- allocated, see BookInfoManager:getBookInfo).
+    local thumb_hot, thumb_cold = {}, {}
+    local thumb_hot_count = 0
+    local THUMB_GEN_MAX = 100
+
+    local function thumbCacheGet(key)
+        local bb = thumb_hot[key]
+        if bb then return bb end
+        bb = thumb_cold[key]
+        if bb then -- promote, so it survives the next rotation
+            thumb_cold[key] = nil
+            thumb_hot[key] = bb
+            thumb_hot_count = thumb_hot_count + 1
+        end
+        return bb
+    end
+
+    local function thumbCachePut(key, bb)
+        if thumb_hot_count >= THUMB_GEN_MAX then
+            thumb_cold = thumb_hot
+            thumb_hot = {}
+            thumb_hot_count = 0
+        end
+        thumb_hot[key] = bb
+        thumb_hot_count = thumb_hot_count + 1
+    end
 
     local function clearCaches()
         folder_covers_cache = {}
         cover_file_cache = {}
         img_dims_cache = {}
-        thumb_cache = {}
-        thumb_count = 0
+        thumb_hot, thumb_cold = {}, {}
+        thumb_hot_count = 0
+    end
+
+    -- Targeted invalidation: drop the given files' thumbnails and the
+    -- cached cover picks of any folder containing them. Called when PT
+    -- (re-)extracts or deletes individual books; everything else stays
+    -- warm. `files` entries are {filepath=...} tables or plain strings.
+    local function invalidateForFiles(files)
+        local dropped = 0
+        for i = 1, #files do
+            local filepath = type(files[i]) == "table" and files[i].filepath or files[i]
+            if type(filepath) == "string" then
+                local thumb_prefix = filepath .. "|"
+                for _, gen in ipairs({ thumb_hot, thumb_cold }) do
+                    for key in pairs(gen) do
+                        if key:sub(1, #thumb_prefix) == thumb_prefix then
+                            gen[key] = nil -- clearing existing keys during pairs() is allowed
+                        end
+                    end
+                end
+                for folder in pairs(folder_covers_cache) do
+                    local folder_prefix = folder .. "/"
+                    if filepath:sub(1, #folder_prefix) == folder_prefix then
+                        folder_covers_cache[folder] = nil
+                        dropped = dropped + 1
+                    end
+                end
+            end
+        end
+        if dropped > 0 then
+            logger.info("pt-foldercover-perf: invalidated", dropped,
+                "cached folder cover(s) after bookinfo update")
+        end
     end
 
     -- Deterministic query on the dir_filename index, shared connection.
@@ -109,7 +168,7 @@ local function patchFolderCovers(plugin)
 
     local function getThumb(fullpath, max_img_w, max_img_h)
         local key = fullpath .. "|" .. math.floor(max_img_w) .. "x" .. math.floor(max_img_h)
-        local bb = thumb_cache[key]
+        local bb = thumbCacheGet(key)
         if bb then return bb end
         local bookinfo = BookInfoManager:getBookInfo(fullpath, true)
         if not bookinfo or not bookinfo.cover_bb then return nil end
@@ -118,12 +177,7 @@ local function patchFolderCovers(plugin)
         bb = RenderImage:scaleBlitBuffer(bookinfo.cover_bb,
             math.floor(bookinfo.cover_w * scale_factor),
             math.floor(bookinfo.cover_h * scale_factor), true) -- frees the 600px original
-        if thumb_count >= THUMB_CACHE_MAX then
-            thumb_cache = {}
-            thumb_count = 0
-        end
-        thumb_cache[key] = bb
-        thumb_count = thumb_count + 1
+        thumbCachePut(key, bb)
         return bb
     end
 
@@ -255,14 +309,26 @@ local function patchFolderCovers(plugin)
         end
     end
 
-    -- Invalidate whenever PT mutates the bookinfo cache: new extractions
-    -- may add covers, deletions/refreshes may change them.
-    for _, method in ipairs({ "extractInBackground", "deleteBookInfo", "deleteDb" }) do
-        local orig = BookInfoManager[method]
-        BookInfoManager[method] = function(self, ...)
-            clearCaches()
-            return orig(self, ...)
-        end
+    -- Invalidate when PT mutates the bookinfo cache, scoped to the files
+    -- actually touched: background extraction may add covers to their
+    -- containing folders, deletions/refreshes may change them. Only
+    -- emptying the whole cache database clears everything.
+    local orig_extractInBackground = BookInfoManager.extractInBackground
+    function BookInfoManager:extractInBackground(files)
+        invalidateForFiles(files)
+        return orig_extractInBackground(self, files)
+    end
+
+    local orig_deleteBookInfo = BookInfoManager.deleteBookInfo
+    function BookInfoManager:deleteBookInfo(filepath)
+        invalidateForFiles({ filepath })
+        return orig_deleteBookInfo(self, filepath)
+    end
+
+    local orig_deleteDb = BookInfoManager.deleteDb
+    function BookInfoManager:deleteDb()
+        clearCaches()
+        return orig_deleteDb(self)
     end
 
     logger.info("pt-foldercover-perf: folder cover caching enabled")
