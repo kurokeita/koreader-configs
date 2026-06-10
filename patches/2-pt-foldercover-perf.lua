@@ -47,13 +47,22 @@ local function patchFolderCovers(plugin)
     -- Version guard: bail out if PT's internals moved.
     for _, fn in ipairs({ "query_cover_paths", "build_cover_images",
                           "getSubfolderCoverImages", "getFolderCover",
-                          "make_sql_safe", "get_thumbnail_size", "findCover" }) do
+                          "build_diagonal_stack", "build_grid",
+                          "get_thumbnail_size", "findCover" }) do
         if type(ptutil[fn]) ~= "function" then
             logger.warn("pt-foldercover-perf: ptutil." .. fn .. " not found, not patching")
             return
         end
     end
     ptutil._foldercover_perf_patched = true
+
+    -- ptutil.make_sql_safe only exists in PT releases newer than
+    -- 2026.03-v3.7; inline the same escaping as a fallback.
+    local make_sql_safe = ptutil.make_sql_safe or function(s)
+        s = s:gsub("'", "''") -- use '' inside '
+        s = s:gsub(";", "_")  -- ljsqlite3 splits commands on semicolons
+        return s
+    end
 
     local Blitbuffer = require("ffi/blitbuffer")
     local FrameContainer = require("ui/widget/container/framecontainer")
@@ -147,7 +156,7 @@ local function patchFolderCovers(plugin)
     -- were deleted since extraction.
     function ptutil.query_cover_paths(folder, include_subfolders)
         if not util.directoryExists(folder) then return nil end
-        local folder_safe = ptutil.make_sql_safe(folder)
+        local folder_safe = make_sql_safe(folder)
         local query
         if include_subfolders then
             query = string.format([[
