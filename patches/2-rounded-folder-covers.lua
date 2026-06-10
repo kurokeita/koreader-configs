@@ -438,7 +438,7 @@ local function patchCoverBrowser(plugin)
                 getFolderCoverBB(dir_path, prewarm.w, prewarm.h)
             else
                 -- no cover of our own: warm PT's collage fallback instead
-                -- (cached by 2-pt-foldercover-perf when installed)
+                -- (cached by 2-pt-perf when installed)
                 local ptutil = require("ptutil")
                 pcall(ptutil.getSubfolderCoverImages, dir_path, prewarm.pt_w, prewarm.pt_h)
             end
@@ -509,7 +509,7 @@ local function patchCoverBrowser(plugin)
         end
     end
 
-    -- Scoped invalidation, same policy as 2-pt-foldercover-perf: extracted
+    -- Scoped invalidation, same policy as 2-pt-perf: extracted
     -- or refreshed files drop their own buffers and the source pick of any
     -- cached ancestor folder.
     local function invalidateForFiles(files)

@@ -1,43 +1,182 @@
 --[[
-pt-foldercover-perf - cache Project: Title's auto-generated folder covers.
+pt-perf - Project: Title file-browser performance fixes.
 
+Two independent fixes in one patch (formerly 2-pt-bookinfo-cache.lua and
+2-pt-foldercover-perf.lua). Each section version-guards itself and skips
+with a log warning if PT's internals have moved; neither changes anything
+visual except that auto folder-cover thumbnails stop reshuffling between
+page draws.
+
+Section 1 - blob-free metadata queries and an in-memory cache:
+PT's single prepared SELECT fetches every bookinfo column, including the
+zstd-compressed cover blob (50-200KB per row), even for metadata-only
+lookups (get_cover=false). Those lookups are everywhere on the hot path:
+MosaicMenuItem:paintTo re-queries on every repaint of every visible book,
+and PT's custom sort collates query once per file each time a folder's
+item table is generated. This section wraps BookInfoManager:getBookInfo so
+metadata-only lookups use a separate prepared statement that excludes the
+cover columns and are served from a bounded in-memory cache keyed by
+filepath (callers get a shallow copy because PT mutates returned tables).
+Books not yet in the DB are never cached, so background extraction results
+still show up. Cover lookups (get_cover=true) and Kobo virtual-library
+paths pass through untouched.
+
+Section 2 - cached auto-generated folder covers:
 PT rebuilds every folder tile from scratch on every page draw: a directory
 scan looking for a cover file, one or two throwaway SQLite connections
 running `ORDER BY RANDOM()` queries (a full scan-and-sort of every cached
 book under the folder), and up to four cover blobs zstd-decompressed and
-rescaled. Nothing is cacheable upstream because RANDOM() returns different
-rows each call, which also makes the thumbnails visibly reshuffle.
-
-This patch replaces the folder-cover helpers in ptutil with versions that:
-  - query deterministically (`ORDER BY directory, filename LIMIT 8`), which
-    rides the dir_filename index instead of sorting the whole subtree, and
-    stops the per-page reshuffling;
-  - reuse BookInfoManager's shared DB connection instead of opening a fresh
-    one per query (upstream also leaks a connection when the folder no
-    longer exists);
-  - cache the chosen cover paths per folder and the scaled thumbnail
-    blitbuffers per book+size, so repeat page draws skip the queries and
-    the decompress+rescale entirely;
-  - cache cover-file probe results and image dimensions, so folder tiles
-    with a cover.jpg stop re-scanning the directory and decoding the image
-    twice per draw.
-
-Invalidation is scoped: when PT extracts or refreshes books, only the
-affected files' thumbnails and their ancestor folders' cached cover picks
-are dropped; everything else stays warm (emptying the whole cache database
-still clears everything). Evicted thumbnails are reclaimed by GC (never
-freed explicitly, as live widgets may still reference them).
+rescaled. This section replaces the folder-cover helpers in ptutil to
+query deterministically on the dir_filename index, reuse BookInfoManager's
+shared DB connection, cache the chosen cover paths per folder and the
+scaled thumbnails per book+size, and cache cover-file probe results and
+image dimensions. Invalidation is scoped: extracting or refreshing books
+drops only the affected files' thumbnails and their ancestor folders'
+cached picks; emptying the cache database clears everything. Evicted
+thumbnails are reclaimed by GC (never freed explicitly, as live widgets
+may still reference them).
 
 Targets:
   - coverbrowser @ joshuacant/ProjectTitle 2026.03-v3.7
-    (ptutil.query_cover_paths, ptutil.build_cover_images,
-    ptutil.getSubfolderCoverImages, ptutil.getFolderCover;
-    BookInfoManager cache-mutating methods are wrapped for invalidation)
+    (BookInfoManager.getBookInfo/getDocProps/closeDbConnection and
+    cache-mutating methods wrapped, column layout discovered via the
+    BOOKINFO_COLS_SET upvalue; ptutil.query_cover_paths,
+    ptutil.build_cover_images, ptutil.getSubfolderCoverImages,
+    ptutil.getFolderCover replaced)
 --]]
 
 local userpatch = require("userpatch")
 local logger = require("logger")
 
+-- Section 1: blob-free metadata queries and an in-memory cache for
+-- BookInfoManager lookups.
+local function patchBookInfoCache(plugin)
+    local BookInfoManager = require("bookinfomanager")
+    if BookInfoManager._bookinfo_cache_patched then return end
+
+    -- Discover the column layout from PT itself, and bail out if the
+    -- schema assumptions this patch relies on no longer hold.
+    local COLS = userpatch.getUpValue(BookInfoManager.getBookInfo, "BOOKINFO_COLS_SET")
+    if type(COLS) ~= "table" or COLS[13] ~= "pages" or COLS[20] ~= "description"
+            or COLS[#COLS] ~= "cover_bb_data" then
+        logger.warn("pt-perf: BookInfoManager internals changed, not patching metadata cache")
+        return
+    end
+    BookInfoManager._bookinfo_cache_patched = true
+
+    local DocumentRegistry = require("document/documentregistry")
+    local lfs = require("libs/libkoreader-lfs")
+    local util = require("util")
+
+    local exclude = { cover_bb_type = true, cover_bb_stride = true, cover_bb_data = true }
+    local meta_cols = {}
+    for _, col in ipairs(COLS) do
+        if not exclude[col] then
+            table.insert(meta_cols, col)
+        end
+    end
+    local META_SELECT_SQL = "SELECT " .. table.concat(meta_cols, ",") ..
+        " FROM bookinfo WHERE directory=? AND filename=? AND in_progress=0;"
+
+    local KOBO_VIRTUAL_PREFIX = "KOBO_VIRTUAL://"
+
+    -- filepath -> canonical metadata table. Bounded; cleared wholesale on
+    -- overflow or invalidation (rebuilding is cheap with the blob-free
+    -- statement).
+    local meta_cache = {}
+    local meta_count = 0
+    local META_CACHE_MAX = 1000
+
+    local function cacheClear()
+        meta_cache = {}
+        meta_count = 0
+    end
+
+    local function shallowCopy(t)
+        local c = {}
+        for k, v in pairs(t) do c[k] = v end
+        return c
+    end
+
+    -- The prepared statement must die with the connection it was prepared
+    -- on (PT closes and reopens the shared connection around subprocess
+    -- forks and on browser close).
+    local orig_closeDbConnection = BookInfoManager.closeDbConnection
+    function BookInfoManager:closeDbConnection()
+        self.get_meta_stmt = nil
+        orig_closeDbConnection(self)
+    end
+
+    local orig_getBookInfo = BookInfoManager.getBookInfo
+    function BookInfoManager:getBookInfo(filepath, get_cover)
+        if get_cover or type(filepath) ~= "string"
+                or filepath:sub(1, #KOBO_VIRTUAL_PREFIX) == KOBO_VIRTUAL_PREFIX then
+            return orig_getBookInfo(self, filepath, get_cover)
+        end
+        local cached = meta_cache[filepath]
+        if cached then
+            return shallowCopy(cached)
+        end
+        -- Directories and unsupported files get upstream's synthetic
+        -- (DB-less) bookinfo table.
+        if lfs.attributes(filepath, "mode") == "directory"
+                or not DocumentRegistry:hasProvider(filepath) then
+            return orig_getBookInfo(self, filepath, get_cover)
+        end
+
+        local directory, filename = util.splitFilePathName(filepath)
+        self:openDbConnection()
+        if not self.get_meta_stmt then
+            self.get_meta_stmt = self.db_conn:prepare(META_SELECT_SQL)
+        end
+        local row = self.get_meta_stmt:bind(directory, filename):step()
+        if not row then
+            self.get_meta_stmt:clearbind():reset()
+            return nil -- not extracted yet; never cached, so extraction results show up
+        end
+        local bookinfo = {}
+        for num, col in ipairs(meta_cols) do
+            if col == "pages" or col == "cover_w" or col == "cover_h" then
+                bookinfo[col] = tonumber(row[num]) -- cdata<int64_t> to Lua number
+            else
+                bookinfo[col] = row[num]
+            end
+        end
+        self.get_meta_stmt:clearbind():reset()
+
+        if meta_count >= META_CACHE_MAX then
+            cacheClear()
+        end
+        meta_cache[filepath] = bookinfo
+        meta_count = meta_count + 1
+        return shallowCopy(bookinfo)
+    end
+
+    function BookInfoManager:getDocProps(filepath)
+        local info = self:getBookInfo(filepath, false)
+        if not info or info._no_provider then return nil end
+        local props = {}
+        for i = 13, 20 do -- pages .. description, same slice as upstream
+            props[COLS[i]] = info[COLS[i]]
+        end
+        props.pages = tonumber(props.pages)
+        return props
+    end
+
+    -- Invalidate on anything that rewrites existing rows. New rows (first
+    -- extraction) need no invalidation because misses are never cached.
+    for _, method in ipairs({ "setBookInfoProperties", "deleteBookInfo", "deleteDb" }) do
+        local orig = BookInfoManager[method]
+        BookInfoManager[method] = function(self, ...)
+            cacheClear()
+            return orig(self, ...)
+        end
+    end
+
+    logger.info("pt-perf: blob-free metadata queries and caching enabled")
+end
+
+-- Section 2: cache PT's auto-generated folder covers.
 local function patchFolderCovers(plugin)
     local ptutil = require("ptutil")
     local BookInfoManager = require("bookinfomanager")
@@ -50,7 +189,7 @@ local function patchFolderCovers(plugin)
                           "build_diagonal_stack", "build_grid",
                           "get_thumbnail_size", "findCover" }) do
         if type(ptutil[fn]) ~= "function" then
-            logger.warn("pt-foldercover-perf: ptutil." .. fn .. " not found, not patching")
+            logger.warn("pt-perf: ptutil." .. fn .. " not found, not patching folder covers")
             return
         end
     end
@@ -146,7 +285,7 @@ local function patchFolderCovers(plugin)
             end
         end
         if dropped > 0 then
-            logger.info("pt-foldercover-perf: invalidated", dropped,
+            logger.info("pt-perf: invalidated", dropped,
                 "cached folder cover(s) after bookinfo update")
         end
     end
@@ -298,7 +437,7 @@ local function patchFolderCovers(plugin)
                 folder_image,
             }
         else
-            logger.info("pt-foldercover-perf: folder cover failed to render:", folder_image_file)
+            logger.info("pt-perf: folder cover failed to render:", folder_image_file)
             local size_mult = 1.25
             local _, _, scale_factor = BookInfoManager.getCachedCoverSize(250, 500,
                 max_img_w * size_mult, max_img_h * size_mult)
@@ -340,7 +479,10 @@ local function patchFolderCovers(plugin)
         return orig_deleteDb(self)
     end
 
-    logger.info("pt-foldercover-perf: folder cover caching enabled")
+    logger.info("pt-perf: folder cover caching enabled")
 end
 
-userpatch.registerPatchPluginFunc("coverbrowser", patchFolderCovers)
+userpatch.registerPatchPluginFunc("coverbrowser", function(plugin)
+    patchBookInfoCache(plugin)
+    patchFolderCovers(plugin)
+end)

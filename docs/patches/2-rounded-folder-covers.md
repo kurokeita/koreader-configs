@@ -27,7 +27,7 @@ current grid cell size, two folders per 0.2s scheduler tick, so first
 visits to new pages draw from cache too. Changing items-per-page restarts
 the walk at the new size automatically. Folders without a cover of
 their own get PT's collage fallback pre-warmed instead (effective when
-`2-pt-foldercover-perf.lua` is installed). `cover_cache_entries` (default
+`2-pt-perf.lua` is installed). `cover_cache_entries` (default
 500) bounds how many pre-scaled covers stay in memory: raise it if your
 library has more folders, at roughly 100-400KB per folder depending on
 cell size and screen type.
