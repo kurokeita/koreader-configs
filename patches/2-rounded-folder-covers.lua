@@ -9,9 +9,18 @@ folder name" toggles to the Mosaic and detailed list settings menu. Aspect
 ratio, fonts, and border thickness are tunable constants at the top of this
 file. Requires the rounded.corner.*.svg icons from this repo's icons/ set.
 
+Folder covers are resolved once and cached: the fallback book is picked
+deterministically from PT's bookinfo DB (first by filename, instead of
+rebuilding the folder's whole item table on every draw), and the chosen
+cover is pre-scaled to the cell size and kept as a blitbuffer, so repeat
+page draws skip the DB blob read, decompression, and rescaling entirely.
+Caches invalidate per file when PT extracts or refreshes books; cover image
+files are re-read when their mtime changes.
+
 Targets:
   - coverbrowser @ joshuacant/ProjectTitle 2026.03-v3.7 (MosaicMenuItem,
-    FileChooser.getListItem) via userpatch.registerPatchPluginFunc
+    FileChooser.getListItem, ptutil.query_cover_paths) via
+    userpatch.registerPatchPluginFunc
 --]]
 
 local AlphaContainer = require("ui/widget/container/alphacontainer")
@@ -27,6 +36,7 @@ local ImageWidget = require("ui/widget/imagewidget")
 local IconWidget = require("ui/widget/iconwidget")
 local LineWidget = require("ui/widget/linewidget")
 local OverlapGroup = require("ui/widget/overlapgroup")
+local RenderImage = require("ui/renderimage")
 local RightContainer = require("ui/widget/container/rightcontainer")
 local Size = require("ui/size")
 local TextBoxWidget = require("ui/widget/textboxwidget")
@@ -36,6 +46,7 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local userpatch = require("userpatch")
 local util = require("util")
+local lfs = require("libs/libkoreader-lfs")
 
 local _ = require("gettext")
 local Screen = Device.screen
@@ -253,46 +264,181 @@ local function patchCoverBrowser(plugin)
         show_folder_name = BooleanSetting(_("Show folder name"), "folder_name_show", folder_name),
     }
 
+    -- Folder-cover caches. Source picks and pre-scaled buffers survive
+    -- across page draws; buffers are dropped to GC on eviction (never
+    -- freed explicitly, live widgets may still reference them).
+    local folder_src_cache = {} -- dir -> {file=path} | {book=path} | false
+    local bb_hot, bb_cold = {}, {} -- "src|mtime|WxH" -> pre-scaled BlitBuffer
+    local bb_hot_count = 0
+    local BB_GEN_MAX = 60
+
+    local function bbCacheGet(key)
+        local bb = bb_hot[key]
+        if bb then return bb end
+        bb = bb_cold[key]
+        if bb then
+            bb_cold[key] = nil
+            bb_hot[key] = bb
+            bb_hot_count = bb_hot_count + 1
+        end
+        return bb
+    end
+
+    local function bbCachePut(key, bb)
+        if bb_hot_count >= BB_GEN_MAX then
+            bb_cold = bb_hot
+            bb_hot = {}
+            bb_hot_count = 0
+        end
+        bb_hot[key] = bb
+        bb_hot_count = bb_hot_count + 1
+    end
+
+    -- Mirror ImageWidget's stretch_limit_percentage decision so pre-scaled
+    -- buffers match what the per-draw scaling used to produce.
+    local function stretchDims(bw, bh, target_w, target_h)
+        local divergence = math.abs(100 - (bw / bh) / (target_w / target_h) * 100)
+        if divergence > stretch_limit then
+            local f = math.min(target_w / bw, target_h / bh)
+            return math.floor(bw * f), math.floor(bh * f)
+        end
+        return target_w, target_h
+    end
+
+    -- Pick the folder's cover source once: a cover.* file if present,
+    -- otherwise the first book (by filename) in the folder with a usable
+    -- cached cover. Deterministic, and no item-table rebuild per draw.
+    local function resolveSource(dir_path)
+        local cover_file = findCover(dir_path)
+        if cover_file then return { file = cover_file } end
+        local ptutil = require("ptutil")
+        local ok, db_res = pcall(ptutil.query_cover_paths, dir_path, false)
+        if ok and db_res then
+            local dirs, files = db_res[1], db_res[2]
+            for i, fn in ipairs(files or {}) do
+                local fullpath = dirs[i] .. fn
+                if util.fileExists(fullpath) then
+                    local bi = BookInfoManager:getBookInfo(fullpath, false)
+                    if bi and bi.has_cover and bi.cover_fetched and not bi.ignore_cover then
+                        return { book = fullpath }
+                    end
+                end
+            end
+        end
+        return false
+    end
+
+    local function fileCoverBB(file, target_w, target_h)
+        local mtime = lfs.attributes(file, "modification") or 0
+        local key = file .. "|" .. mtime .. "|" .. target_w .. "x" .. target_h
+        local bb = bbCacheGet(key)
+        if bb then return bb end
+        local ok, native = pcall(RenderImage.renderImageFile, RenderImage, file)
+        if not ok or not native then return nil end
+        local w, h = stretchDims(native:getWidth(), native:getHeight(), target_w, target_h)
+        bb = RenderImage:scaleBlitBuffer(native, w, h, true) -- frees the native decode
+        bbCachePut(key, bb)
+        return bb
+    end
+
+    local function bookCoverBB(fullpath, target_w, target_h)
+        local key = fullpath .. "|" .. target_w .. "x" .. target_h
+        local bb = bbCacheGet(key)
+        if bb then return bb end
+        local bookinfo = BookInfoManager:getBookInfo(fullpath, true)
+        if not bookinfo or not bookinfo.cover_bb then return nil end
+        if bookinfo.ignore_cover then
+            bookinfo.cover_bb:free()
+            return nil
+        end
+        local w, h = stretchDims(bookinfo.cover_w, bookinfo.cover_h, target_w, target_h)
+        bb = RenderImage:scaleBlitBuffer(bookinfo.cover_bb, w, h, true) -- frees the 600px original
+        bbCachePut(key, bb)
+        return bb
+    end
+
+    local function getFolderCoverBB(dir_path, target_w, target_h)
+        local src = folder_src_cache[dir_path]
+        if src == nil then
+            src = resolveSource(dir_path)
+            folder_src_cache[dir_path] = src
+        end
+        if not src then return nil end
+        if src.file then
+            local bb = fileCoverBB(src.file, target_w, target_h)
+            if bb then return bb end
+            -- broken/unreadable cover image: fall back to a book cover,
+            -- like the pre-cache behavior did
+            src = resolveSource(dir_path)
+            if src and src.file then src = false end
+            folder_src_cache[dir_path] = src
+        end
+        if src and src.book then
+            local bb = bookCoverBB(src.book, target_w, target_h)
+            if bb then return bb end
+            folder_src_cache[dir_path] = false -- re-resolved on next invalidation
+        end
+        return nil
+    end
+
+    -- Scoped invalidation, same policy as 2-pt-foldercover-perf: extracted
+    -- or refreshed files drop their own buffers and the source pick of any
+    -- cached ancestor folder.
+    local function invalidateForFiles(files)
+        for i = 1, #files do
+            local filepath = type(files[i]) == "table" and files[i].filepath or files[i]
+            if type(filepath) == "string" then
+                local prefix = filepath .. "|"
+                for _, gen in ipairs({ bb_hot, bb_cold }) do
+                    for key in pairs(gen) do
+                        if key:sub(1, #prefix) == prefix then
+                            gen[key] = nil
+                        end
+                    end
+                end
+                for folder in pairs(folder_src_cache) do
+                    if filepath:sub(1, #folder + 1) == folder .. "/" then
+                        folder_src_cache[folder] = nil
+                    end
+                end
+            end
+        end
+    end
+
+    local orig_extractInBackground = BookInfoManager.extractInBackground
+    function BookInfoManager:extractInBackground(files)
+        invalidateForFiles(files)
+        return orig_extractInBackground(self, files)
+    end
+
+    local orig_deleteBookInfo = BookInfoManager.deleteBookInfo
+    function BookInfoManager:deleteBookInfo(filepath)
+        invalidateForFiles({ filepath })
+        return orig_deleteBookInfo(self, filepath)
+    end
+
+    local orig_deleteDb = BookInfoManager.deleteDb
+    function BookInfoManager:deleteDb()
+        folder_src_cache = {}
+        bb_hot, bb_cold = {}, {}
+        bb_hot_count = 0
+        return orig_deleteDb(self)
+    end
+
     function MosaicMenuItem:update(...)
         original_update(self, ...)
         if self._foldercover_processed or self.menu.no_refresh_covers or not self.do_cover_image then return end
         if self.entry.is_file or self.entry.file or not self.mandatory then return end
-        
+
         local dir_path = self.entry and self.entry.path
         if not dir_path then return end
-        
+
         self._foldercover_processed = true
 
-        local cover_file = findCover(dir_path)
-        if cover_file then
-            local success, w, h = pcall(function()
-                local tmp_img = ImageWidget:new { file = cover_file, scale_factor = 1 }
-                tmp_img:_render()
-                local orig_w = tmp_img:getOriginalWidth()
-                local orig_h = tmp_img:getOriginalHeight()
-                tmp_img:free()
-                return orig_w, orig_h
-            end)
-            if success then
-                self:_setFolderCover { file = cover_file, w = w, h = h }
-                return
-            end
-        end
-
-        self.menu._dummy = true
-        local entries = self.menu:genItemTableFromPath(dir_path)
-        self.menu._dummy = false
-        if not entries then return end
-
-        for _, entry in ipairs(entries) do
-            if entry.is_file or entry.file then
-                local bookinfo = BookInfoManager:getBookInfo(entry.path, true)
-                if bookinfo and bookinfo.cover_bb and bookinfo.has_cover and bookinfo.cover_fetched
-                   and not bookinfo.ignore_cover and not BookInfoManager.isCachedCoverInvalid(bookinfo, self.menu.cover_specs) then
-                    self:_setFolderCover { data = bookinfo.cover_bb, w = bookinfo.cover_w, h = bookinfo.cover_h }
-                    break
-                end
-            end
+        local frame_dimen = getAspectRatioAdjustedDimensions(self.width, self.height, 0)
+        local bb = getFolderCoverBB(dir_path, frame_dimen.w, frame_dimen.h)
+        if bb then
+            self:_setFolderCover { bb = bb }
         end
     end
 
@@ -302,9 +448,9 @@ local function patchCoverBrowser(plugin)
         local image_width = frame_dimen.w - 2 * border_size
         local image_height = frame_dimen.h - 2 * border_size
         
-        local image = img.file and 
-            ImageWidget:new { file = img.file, width = image_width, height = image_height, stretch_limit_percentage = stretch_limit } or
-            ImageWidget:new { image = img.data, width = image_width, height = image_height, stretch_limit_percentage = stretch_limit }
+        -- img.bb is pre-scaled to fit (image_width, image_height) and owned
+        -- by the cover cache, so the widget must not dispose of it
+        local image = ImageWidget:new { image = img.bb, image_disposable = false }
         
         local image_widget = FrameContainer:new {
             padding = 0, bordersize = border_size, image, overlap_align = "center",

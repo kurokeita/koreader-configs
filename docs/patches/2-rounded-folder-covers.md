@@ -11,6 +11,16 @@ to the first contained book's cached cover. On top of the image it draws:
 - an item-count badge in the bottom-right corner
 - a thin black border around the image
 
+Folder covers are resolved once and cached. The fallback book is picked
+deterministically from PT's bookinfo DB (first by filename with a usable
+cover) instead of rebuilding the folder's item table on every draw, and the
+chosen cover is pre-scaled to the cell size and kept as a blitbuffer, so
+repeat page draws skip the DB blob read, decompression, and rescaling.
+Caches invalidate per file when PT extracts or refreshes books; a changed
+`cover.*` file is picked up via its mtime. The cover a folder shows may
+therefore differ from the pre-cache behavior (which followed the current
+sort order): it is now stable across draws and sessions.
+
 The patch also memoizes `FileChooser:getListItem` results to keep folder
 scanning cheap while covers are resolved.
 
