@@ -28,6 +28,8 @@ local function enableProfiler(plugin)
         logger.warn("pt-profiler: ptdbg module not found, timers not enabled")
         return
     end
+    if ptdbg._pt_profiler_wrapped then return end -- plugin can load more than once
+    ptdbg._pt_profiler_wrapped = true
     ptdbg.enabled = true
 
     local DataStorage = require("datastorage")
