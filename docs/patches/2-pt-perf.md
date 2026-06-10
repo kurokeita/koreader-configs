@@ -5,6 +5,26 @@ one patch (formerly `2-pt-bookinfo-cache.lua` and
 `2-pt-foldercover-perf.lua`). Nothing changes visually except that auto
 folder-cover thumbnails stop reshuffling between page draws.
 
+## Section 0: shared cache-invalidation registry
+
+All caches (here and in `2-rounded-folder-covers.lua`) register listeners
+on one registry that wraps every PT path that writes bookinfo rows:
+
+- `setBookInfoProperties` ("Ignore cover/metadata" buttons) and
+  `deleteBookInfo` notify per file;
+- background extraction notifies at subprocess **completion** (observed
+  by the zombie reaper), because rows commit after `extractInBackground`
+  returns; invalidating at launch would let the next draw cache a stale
+  negative result;
+- batch indexing and the home-folder autoscan (`extractBooksInDirectory`)
+  notify a full clear when the run ends;
+- `deleteDb` (cache emptied) notifies a full clear.
+
+While any extraction may still be writing rows, negative lookups ("this
+folder has no covers") are not cached, so results from a running scan
+appear without a restart. The registry is installed idempotently by
+whichever of the two patches loads first.
+
 ## Section 1: blob-free metadata queries and an in-memory cache
 
 Upstream PT uses a single prepared SELECT that fetches every column of a
@@ -21,14 +41,16 @@ lookups sit on the hottest paths:
 The patch wraps `getBookInfo` so metadata-only lookups use a second
 prepared statement that excludes the three cover columns (layout
 discovered from PT's own `BOOKINFO_COLS_SET` upvalue, no hardcoded
-schema) and are answered from a bounded in-memory cache keyed by filepath.
-Callers receive a shallow copy because PT mutates returned tables in
-place. Correctness guards:
+schema) and are answered from a two-generation in-memory cache keyed by
+filepath (an overflow drops the oldest half instead of everything, so
+whole-library iterations like PT's sort collates don't dump still-hot
+entries mid-pass). Callers receive a shallow copy because PT mutates
+returned tables in place. Correctness guards:
 
 - books not yet in the DB are **never cached**, so background-extraction
   results still appear via PT's normal update loop;
-- the cache clears whenever PT rewrites rows (`setBookInfoProperties`,
-  `deleteBookInfo`, `deleteDb`);
+- row rewrites invalidate precisely via the shared registry (per file for
+  property changes and deletions, batch-wide for scans);
 - cover lookups (`get_cover=true`), directories, unsupported files, and
   Kobo virtual-library paths pass through to upstream untouched;
 - the prepared statement is dropped whenever PT closes its shared DB
@@ -54,17 +76,19 @@ The patch replaces PT's folder-cover helpers in `ptutil` to:
 - reuse BookInfoManager's shared DB connection (upstream opens a fresh one
   per query, and leaks it when the folder no longer exists);
 - cache the chosen cover paths per folder and the scaled thumbnail
-  blitbuffers per book+size (two-generation cache keeping the most recent
-  ~100-200 entries), so repeat draws skip queries and decompression;
+  blitbuffers per book+size (two byte-budgeted generations, ~8MB total),
+  so repeat draws skip queries and decompression;
 - cache the cover-file probe result and image dimensions for folders with
-  their own cover image.
+  their own cover image (mtime-keyed; a vanished cover file is detected
+  by a per-draw stat and re-probed).
 
-Invalidation is scoped: extracting or refreshing books drops only those
-files' thumbnails and the cached cover picks of folders containing them;
-emptying PT's cache database clears everything. Evicted buffers are
-reclaimed by GC rather than freed explicitly, since live widgets may still
-reference them. `ptutil.make_sql_safe` is inlined as a fallback for PT
-releases (like the pinned v3.7) that predate it.
+Invalidation is scoped via the shared registry: changed files drop only
+their own thumbnails and the cached cover picks of folders containing
+them; batch scans and cache emptying clear everything; negative results
+are not cached while a scan is writing. Evicted buffers are reclaimed by
+GC rather than freed explicitly, since live widgets may still reference
+them. `ptutil.make_sql_safe` is inlined as a fallback for PT releases
+(like the pinned v3.7) that predate it.
 
 ## Target
 

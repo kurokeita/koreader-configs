@@ -14,31 +14,45 @@ to the first contained book's cached cover. On top of the image it draws:
 Folder covers are resolved once and cached. The fallback book is picked
 deterministically from PT's bookinfo DB (first by filename with a usable
 cover) instead of rebuilding the folder's item table on every draw, and the
-chosen cover is pre-scaled to the cell size and kept as a blitbuffer, so
-repeat page draws skip the DB blob read, decompression, and rescaling.
-Caches invalidate per file when PT extracts or refreshes books; a changed
-`cover.*` file is picked up via its mtime. The cover a folder shows may
-therefore differ from the pre-cache behavior (which followed the current
-sort order): it is now stable across draws and sessions.
+chosen cover is pre-scaled to the cell size and kept in a byte-budgeted
+blitbuffer cache, so repeat page draws skip the DB blob read,
+decompression, and rescaling. The cover a folder shows may therefore
+differ from the pre-cache behavior (which followed the current sort
+order): it is now stable across draws and sessions. If a folder's
+`cover.*` file is unreadable, the patch falls back to a book cover, same
+as before caching.
+
+Invalidation goes through the shared registry installed by this patch or
+`2-pt-perf.lua` (whichever loads first), which wraps every PT path that
+writes bookinfo rows: per-file invalidation on property changes ("Ignore
+cover") and per-book refreshes, completion-time invalidation for
+background extraction (rows commit after the launch call returns), and a
+full clear plus pre-warm restart when a batch scan (including the
+home-folder autoscan) finishes or the cache database is emptied. While a
+scan may still be writing rows, "no cover found" results are not cached,
+so covers appear as the scan progresses. A changed `cover.*` file is
+picked up via its mtime, and a deleted one is detected and re-resolved on
+the next draw; a newly **added** `cover.*` file in an already-cached
+folder is only noticed after the next scan/restart.
 
 With `prewarm_folder_covers` enabled (default), a background walker
 pre-builds the covers of **every** folder under the home directory at the
-current grid cell size, two folders per 0.2s scheduler tick, so first
-visits to new pages draw from cache too. Changing items-per-page restarts
-the walk at the new size automatically. Folders without a cover of
-their own get PT's collage fallback pre-warmed instead (effective when
-`2-pt-perf.lua` is installed). `cover_cache_entries` (default
-500) bounds how many pre-scaled covers stay in memory: raise it if your
-library has more folders, at roughly 100-400KB per folder depending on
-cell size and screen type.
+current grid cell size. The directory tree is expanded incrementally (a
+few directories plus two covers per 0.2s scheduler tick), so nothing
+blocks the draw path, and the walk keeps running while a book is open so
+the browser is warm on return. Changing items-per-page restarts the walk
+at the new size automatically. Folders without a cover of their own get
+PT's collage fallback pre-warmed instead (effective when `2-pt-perf.lua`
+is installed). `cover_cache_mb` (default 24) bounds the memory used by
+pre-scaled covers in megabytes; raise it for very folder-heavy libraries.
 
 When PT's **"Scan home folder for new books automatically"**
 (`autoscan_on_eject`) is enabled, the walk additionally starts ~10s after
 app startup, in the background, even when KOReader opens straight into a
-book. The grid cell size is then taken from the last session (persisted
-as `rfc_prewarm_dims` in PT's settings store by every folder draw); on
-the very first session there is nothing persisted yet, so the startup
-warm begins with the first folder draw instead.
+book. The grid cell size is re-derived from the last session's persisted
+value (`rfc_prewarm_cell` in PT's settings store, written off the draw
+path); on the very first session there is nothing persisted yet, so the
+startup warm begins with the first folder draw instead.
 
 The patch also memoizes `FileChooser:getListItem` results to keep folder
 scanning cheap while covers are resolved.
