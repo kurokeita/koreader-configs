@@ -426,13 +426,45 @@ local function patchCoverBrowser(plugin)
     end
 
     function MosaicMenuItem:update(...)
+        -- When this patch will replace a folder cell's cover, PT's own
+        -- auto folder-cover collage (up to 4 cover decompressions per
+        -- cold tile) would be built only to be thrown away. Resolve our
+        -- cover source first (cached), and suppress PT's collage for the
+        -- duration of the original update by toggling its in-memory
+        -- setting (the DB-stored value is never touched). Folders we
+        -- cannot cover keep PT's collage as the visual fallback.
+        local will_replace_cover = false
+        local dir_path
+        if not (self.entry.is_file or self.entry.file)
+                and not self.menu.no_refresh_covers and self.do_cover_image
+                and not self._foldercover_processed and self.mandatory then
+            dir_path = self.entry and self.entry.path
+            if dir_path then
+                local src = folder_src_cache[dir_path]
+                if src == nil then
+                    src = resolveSource(dir_path)
+                    folder_src_cache[dir_path] = src
+                end
+                will_replace_cover = src and true or false
+            end
+        end
+
+        local saved_setting
+        if will_replace_cover then
+            if not BookInfoManager.settings then
+                BookInfoManager:getSetting("disable_auto_foldercovers") -- force settings load
+            end
+            if BookInfoManager.settings then
+                saved_setting = BookInfoManager.settings.disable_auto_foldercovers
+                BookInfoManager.settings.disable_auto_foldercovers = true
+            end
+        end
         original_update(self, ...)
-        if self._foldercover_processed or self.menu.no_refresh_covers or not self.do_cover_image then return end
-        if self.entry.is_file or self.entry.file or not self.mandatory then return end
+        if will_replace_cover and BookInfoManager.settings then
+            BookInfoManager.settings.disable_auto_foldercovers = saved_setting
+        end
 
-        local dir_path = self.entry and self.entry.path
-        if not dir_path then return end
-
+        if not will_replace_cover then return end
         self._foldercover_processed = true
 
         local frame_dimen = getAspectRatioAdjustedDimensions(self.width, self.height, 0)
