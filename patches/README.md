@@ -21,6 +21,7 @@ device.
 | 2 | [`2-new-status-icons.lua`](../docs/patches/2-new-status-icons.md) | coverbrowser | Replace Project: Title corner status marks with new status icons. |
 | 2 | [`2-pages-badge.lua`](../docs/patches/2-pages-badge.md) | coverbrowser | Add page-count badges for unread books. |
 | 2 | [`2-percent-badge.lua`](../docs/patches/2-percent-badge.md) | coverbrowser | Add progress-percentage badges on book covers. |
+| 2 | [`2-pt-bookinfo-cache.lua`](../docs/patches/2-pt-bookinfo-cache.md) | coverbrowser (PT) | Blob-free metadata queries and an in-memory cache for BookInfoManager lookups. |
 | 2 | [`2-pt-foldercover-perf.lua`](../docs/patches/2-pt-foldercover-perf.md) | coverbrowser (PT) | Cache auto-generated folder covers and make their DB queries deterministic to speed up folder-heavy pages. |
 | 2 | [`2-pt-footer-history-recent.lua`](../docs/patches/2-pt-footer-history-recent.md) | coverbrowser (PT) | Add History and Open-Previous-Document icon buttons to Project: Title's file-browser footer. |
 | 2 | [`2-pt-mm-noborders.lua`](../docs/patches/2-pt-mm-noborders.md) | coverbrowser (PT) | Remove separator lines in Project: Title's mosaic view. |
