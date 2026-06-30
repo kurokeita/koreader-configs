@@ -17,7 +17,7 @@ check).
 
 | KOReader | Codename | Project: Title | Bookends |
 | --- | --- | --- | --- |
-| 2026.03 | Snowflake | `2026.03-v3.7` | `v5.14.0` |
+| 2026.03 | Snowflake | `2026.03-v3.7` | `v5.20.0` |
 
 To move to a new KOReader version: bump `plugins/manifest.yml`, re-audit
 each patch's pinned version, then tag a release so CI builds the new bundle.

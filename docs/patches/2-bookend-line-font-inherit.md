@@ -17,7 +17,7 @@ Default font setting itself) are left untouched.
 ## Target
 
 - **Patches:** bookends plugin
-- **Written against:** Bookends v5.14.0 (wraps `Bookends:showFontPicker`,
+- **Written against:** Bookends v5.20.0 (wraps `Bookends:showFontPicker`,
   call site in `bookends_line_editor.lua`)
 - **Requires:** Bookends plugin installed
 
