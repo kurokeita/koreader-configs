@@ -8,16 +8,19 @@
   "workspace.library": [
     "_ref/koreader/frontend",
     "_ref/koreader/plugins/coverbrowser.koplugin",
-    "_ref/ProjectTitle/plugins/coverbrowser.koplugin",
+    "_ref/ProjectTitle",
     "_ref/bookends.koplugin"
   ],
   "workspace.ignoreDir": [
     ".git",
     "_ref",
+    "_ref/bookends.koplugin/tests",
     "icons",
     "node_modules"
   ],
   "workspace.checkThirdParty": false,
+  "diagnostics.libraryFiles": "Disable",
+  "diagnostics.ignoredFiles": "Disable",
   "diagnostics.globals": [
     "G_reader_settings"
   ],

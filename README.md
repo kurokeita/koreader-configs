@@ -10,6 +10,16 @@ together for easy installation on any KOReader device.
 | `patches/` | Lua userpatches loaded by KOReader at startup from `koreader/patches/`. |
 | `icons/` | SVG icon overrides that drop into KOReader's `mdlight` icon set. |
 | `plugins/` | Manifest (`manifest.yml`) pinning upstream plugin versions per KOReader target. |
+| `settings/` | Bookends presets that mirror the device's `koreader/settings/` layout. |
+
+## Documentation
+
+| Page | Covers |
+| --- | --- |
+| [docs/installation.md](docs/installation.md) | Step-by-step install: release bundle and manual, per-platform paths, upgrade/rollback. |
+| [docs/plugins.md](docs/plugins.md) | Project: Title and Bookends: pinned versions, install, recommended in-app settings. |
+| [docs/settings.md](docs/settings.md) | Bookends presets in `settings/`: what they set and how to apply them. |
+| [patches/README.md](patches/README.md) | Generated per-patch index, linking to detail pages in `docs/patches/`. |
 
 ## Releases
 

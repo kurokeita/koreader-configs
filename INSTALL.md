@@ -21,8 +21,16 @@ recording the exact plugin and KOReader versions it targets.
      in whole)
    - `icons/` → `koreader/resources/icons/mdlight/` (these icons are
      overrides for the `mdlight` set specifically)
+   - `settings/` → `koreader/settings/` (Bookends presets; optional,
+     load them from Bookends' preset library afterwards)
 3. Restart KOReader.
 
 If you are upgrading and want to revert, delete the files you copied
 in step 2 (the bundle's `VERSIONS.txt` lists every plugin folder it
 adds).
+
+## Detailed configuration
+
+For per-patch documentation, recommended plugin settings, and the
+bookends presets, see the `docs/` directory in the source repository:
+<https://github.com/kurokeita/koreader-configs/tree/main/docs>

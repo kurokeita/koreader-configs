@@ -1,3 +1,14 @@
+--[[
+menu-size - scale menu item counts to the screen's real DPI.
+
+Compares the configured DPI against the device default and shrinks
+TouchMenu.max_per_page_default and Menu.items_per_page_default by that ratio,
+so menus keep comfortable touch targets when a custom (higher) DPI is set.
+
+Targets:
+  - KOReader core (ui/widget/menu, ui/widget/touchmenu), written against KOReader 2026.03
+--]]
+
 local Device = require("device")
 local Screen = Device.screen
 local Menu = require("ui/widget/menu")
