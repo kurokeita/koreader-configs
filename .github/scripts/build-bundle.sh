@@ -94,6 +94,11 @@ if [ ! -f "$REPO_ROOT/INSTALL.md" ]; then
 fi
 cp "$REPO_ROOT/INSTALL.md" "$STAGING/INSTALL.txt"
 
+# zip updates an existing archive in place rather than replacing it, so a
+# rebuild at the same tag would merge into the previous bundle and keep files
+# that are no longer staged. CI always starts on a clean runner; local builds
+# do not.
+rm -f "$OUT_DIR/$BUNDLE_NAME.zip"
 (
   cd "$OUT_DIR/staging"
   zip -qr "../$BUNDLE_NAME.zip" "$BUNDLE_NAME"
