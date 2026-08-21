@@ -12,7 +12,7 @@ untouched.
 ## Target
 
 - **Patches:** coverimage plugin (stock KOReader)
-- **Written against:** KOReader 2026.03
+- **Written against:** KOReader 2026.07.1
 
 ## Settings
 

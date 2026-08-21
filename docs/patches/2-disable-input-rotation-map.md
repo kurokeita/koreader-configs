@@ -14,7 +14,7 @@ orientations. Install it only if you see the double-rotation symptom.
 ## Target
 
 - **Patches:** KOReader core (device input layer)
-- **Written against:** KOReader 2026.03
+- **Written against:** KOReader 2026.07.1
 
 ## Settings
 

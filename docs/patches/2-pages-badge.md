@@ -13,7 +13,7 @@ disappears as soon as a book is opened.
 
 - **Patches:** coverbrowser plugin (MosaicMenuItem paint path); works with
   stock coverbrowser and Project: Title
-- **Written against:** KOReader 2026.03 / ProjectTitle 2026.03-v3.7
+- **Written against:** KOReader 2026.07.1 / ProjectTitle 2026.07-v3.8.3
 
 ## Settings
 

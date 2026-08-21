@@ -12,7 +12,7 @@ ratio is capped at 1).
 ## Target
 
 - **Patches:** KOReader core (`ui/widget/menu`, `ui/widget/touchmenu`)
-- **Written against:** KOReader 2026.03
+- **Written against:** KOReader 2026.07.1
 
 ## Settings
 

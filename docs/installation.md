@@ -51,15 +51,20 @@ A release bundle unzips to a single directory named
 3. Install each plugin from its upstream Releases page, at **exactly the
    tag pinned in [`plugins/manifest.yml`](../plugins/manifest.yml)**:
 
-   | Plugin | Upstream releases | Pinned tag (KOReader 2026.03 "Snowflake") |
+   | Plugin | Upstream releases | Pinned tag (KOReader 2026.07.1 "Sailing Walrus") |
    | --- | --- | --- |
-   | Project: Title | <https://github.com/joshuacant/ProjectTitle/releases> | `2026.03-v3.7` |
+   | Project: Title | <https://github.com/joshuacant/ProjectTitle/releases> | `2026.07-v3.8.3` |
    | Bookends | <https://github.com/AndyHazz/bookends.koplugin/releases> | `v5.20.0` |
 
    Unzip each release and drop the `*.koplugin/` folder whole into
    `koreader/plugins/`. The pins matter: several patches wrap specific
    functions in these releases and may break on other versions; see
    [plugins.md](plugins.md).
+
+   Note the notation difference when matching releases up: KOReader tags
+   this release `v2026.07.1`, while Project: Title's release notes write
+   the same KOReader version as `2026.07.01`. This repo uses KOReader's
+   form throughout.
 
 4. Restart KOReader.
 

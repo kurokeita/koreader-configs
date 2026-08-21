@@ -21,7 +21,7 @@ The patch covers both sleep-screen mechanisms, each with its own setting:
 ## Target
 
 - **Patches:** coverimage plugin and `ui/screensaver` (stock KOReader)
-- **Written against:** KOReader 2026.03
+- **Written against:** KOReader 2026.07.1
 
 ## Settings
 
