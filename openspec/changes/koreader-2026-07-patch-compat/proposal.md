@@ -63,5 +63,8 @@ gained a schema change and ~70 new lines around `getBookInfo` in v3.8.3.
 name `bookends` they register against), the 2 coverimage patches, and the 2 core patches
 `2-menu-size.lua` and `2-disable-input-rotation-map.lua`.
 
-**Explicitly out of scope** — bumping bookends past the current `v5.20.0` pin (`v5.22.0`
-is available). Unrelated to the plugin-identity break; belongs in its own change.
+**Scope amendment (was out of scope)** — bumping bookends past `v5.20.0` was excluded
+here as unrelated to the plugin-identity break, and was then pulled in by explicit
+request during implementation. Bookends now pins `v5.22.0` (`43bbcfa`). The exclusion
+reasoning still holds in principle: the bump has nothing to do with plugin identity, and
+it was verified on its own terms rather than riding on this change's evidence.

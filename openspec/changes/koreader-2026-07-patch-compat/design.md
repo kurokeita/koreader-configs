@@ -64,7 +64,8 @@ can be verified until these move.
 - Adopting v3.8's new affordances. `ptutil` functions becoming non-local invites
   simplifying existing workarounds, and 3.8 added sort methods our patches could hook.
   Both are improvements, neither is this change.
-- Bumping bookends past `v5.20.0` (see `proposal.md` — Impact).
+- ~~Bumping bookends past `v5.20.0`~~ — amended, see `proposal.md`. Pulled into this
+  change by request and pinned to `v5.22.0` (`43bbcfa`), verified separately.
 
 ## Decisions
 
