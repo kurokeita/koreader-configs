@@ -23,8 +23,10 @@
 
 ## 5. Tier 3 verification (symbol confirmed present)
 
-- [ ] 5.1 `2-pt-mm-noborders.lua` — confirm `ptutil.thinWhiteLine`, `thinGrayLine`, `mediumBlackLine` exist at v3.8.3 and the call signatures are unchanged
-- [ ] 5.2 `2-pt-footer-history-recent.lua` — confirm `CoverMenu.menuInit` is unchanged at v3.8.3 and the `BookInfoManager` setting accessors it uses still resolve
+Both items verified static-only against `_ref/` at `2026.07-v3.8.3` / `v2026.07.1`. No patch edits were required.
+
+- [x] 5.1 `2-pt-mm-noborders.lua` — confirm `ptutil.thinWhiteLine`, `thinGrayLine`, `mediumBlackLine` exist at v3.8.3 and the call signatures are unchanged — VERIFIED, no change needed. All three at `ptutil.lua:542-545`, `ptutil.line` at 531, and `git diff 2026.03-v3.7 2026.07-v3.8.3 -- ptutil.lua` shows zero lines touching any of them. All 8 call sites (`mosaicmenu.lua:1294,1354,1357,1369`, `covermenu.lua:727`, `listmenu.lua:1331,1352,1354`) still resolve through the `ptutil` table at call time, so the override takes effect. `ptutil.thinBlackLine` is used at 3 sites and is not overridden by the patch, but that was equally true at v3.7 (identical line numbers in both tags), so it is pre-existing scope, not a regression.
+- [x] 5.2 `2-pt-footer-history-recent.lua` — confirm `CoverMenu.menuInit` is unchanged at v3.8.3 and the `BookInfoManager` setting accessors it uses still resolve — VERIFIED, no change needed. `covermenu.lua` drifted by only 5 insertions / 2 deletions across the whole file, none of them inside `CoverMenu:menuInit` (`covermenu.lua:621`). Confirmed still present and unchanged: the `Menu.init = CoverMenu.menuInit` redirect (`main.lua:1045`) the patch has to shadow; the `page_info` / `cur_folder_text` / `screen_w` fields it mutates; `getSetting` / `saveSetting` / `toggleSetting` (`bookinfomanager.lua:296,303,336`); the `replace_footer_text` and `reverse_footer` keys; the menu path `filemanager_display_mode` -> `Advanced settings` (`main.lua:591`) -> `Footer` (722) -> `Replace folder name with device info` (725), with zero diff on those strings; `ProjectTitle:addToMainMenu` (389); `require("l10n.gettext")`. Host names resolve: `filemanager` from `covermenu.lua:391`, `history` and `collections` from KOReader core (`filemanagerhistory.lua:62`, `filemanagercollection.lua:83`). The `history` and `last_document` icons are NOT in KOReader's `resources/icons/mdlight/`; they arrive via `ptutil.installIcons` (`ptutil.lua:186`), whose list still includes both.
 
 ## 6. Tier 2 verification (hooked body changed upstream)
 
