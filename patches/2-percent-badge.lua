@@ -1,5 +1,7 @@
 --[[ Patch to add progress percentage badges on book covers ]]
---
+-- Targets:
+--   - KOReader 2026.07.1 (safe_version 202607010000)
+--   - projecttitle @ joshuacant/ProjectTitle 2026.07-v3.8.3
 
 -- stylua: ignore start
 --========================== [[Edit your preferences here]] ================================

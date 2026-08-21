@@ -22,7 +22,8 @@ files are re-read when their mtime changes, and a deleted cover file is
 detected and re-resolved on the next draw.
 
 Targets:
-  - coverbrowser @ joshuacant/ProjectTitle 2026.03-v3.7 (MosaicMenuItem,
+  - KOReader 2026.07.1 (safe_version 202607010000)
+  - projecttitle @ joshuacant/ProjectTitle 2026.07-v3.8.3 (MosaicMenuItem,
     FileChooser.getListItem, ptutil.query_cover_paths) via
     userpatch.registerPatchPluginFunc
 --]]

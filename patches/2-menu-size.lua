@@ -6,7 +6,8 @@ TouchMenu.max_per_page_default and Menu.items_per_page_default by that ratio,
 so menus keep comfortable touch targets when a custom (higher) DPI is set.
 
 Targets:
-  - KOReader core (ui/widget/menu, ui/widget/touchmenu), written against KOReader 2026.03
+  - KOReader 2026.07.1 (safe_version 202607010000)
+  - KOReader core (ui/widget/menu, ui/widget/touchmenu)
 --]]
 
 local Device = require("device")

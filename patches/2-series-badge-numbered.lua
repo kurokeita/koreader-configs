@@ -1,5 +1,7 @@
 --[[ Patch to add series indicator to top right side of the book cover ]]
---
+-- Targets:
+--   - KOReader 2026.07.1 (safe_version 202607010000)
+--   - projecttitle @ joshuacant/ProjectTitle 2026.07-v3.8.3
 local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local TextWidget = require("ui/widget/textwidget")

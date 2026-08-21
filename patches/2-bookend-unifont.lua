@@ -12,7 +12,8 @@ Targets:
   - Bookends @ AndyHazz/bookends.koplugin v5.20.0 (or compatible)
     wraps Bookends:resolveLineConfig (main.lua:1016) and
     Bookends:buildBookendsSettingsMenu (menu/main_menu.lua:209)
-  - KOReader with ffi/archiver and userpatch.registerPatchPluginFunc
+  - KOReader 2026.07.1 (safe_version 202607010000), with ffi/archiver and
+    userpatch.registerPatchPluginFunc
 
 Settings (global, in G_reader_settings):
   - bookend_unifont_enabled  (bool, default false)

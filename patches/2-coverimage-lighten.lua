@@ -13,6 +13,10 @@
     30 % = subtle lightening
     50 % = medium (recommended for most color e-ink screens)
     70 % = very light
+
+    Targets:
+      - KOReader 2026.07.1 (safe_version 202607010000)
+      - coverimage (KOReader built-in plugin)
 --]]
 
 local userpatch = require("userpatch")

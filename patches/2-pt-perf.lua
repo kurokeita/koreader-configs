@@ -47,7 +47,8 @@ cover-file probe results and image dimensions (mtime-keyed; a deleted
 cover file is detected and re-probed).
 
 Targets:
-  - coverbrowser @ joshuacant/ProjectTitle 2026.03-v3.7
+  - KOReader 2026.07.1 (safe_version 202607010000)
+  - projecttitle @ joshuacant/ProjectTitle 2026.07-v3.8.3
     (BookInfoManager query/lifecycle/mutation methods wrapped, column
     layout discovered via the BOOKINFO_COLS_SET upvalue;
     ptutil.query_cover_paths, ptutil.build_cover_images,

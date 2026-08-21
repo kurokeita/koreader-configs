@@ -1,5 +1,7 @@
 --[[ User patch for Project title plugin to add rounded corners to book covers ]]
---
+-- Targets:
+--   - KOReader 2026.07.1 (safe_version 202607010000)
+--   - projecttitle @ joshuacant/ProjectTitle 2026.07-v3.8.3
 
 local IconWidget = require("ui/widget/iconwidget")
 local logger = require("logger")

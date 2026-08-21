@@ -24,6 +24,10 @@
      80 % = aggressive (very saturated, high contrast)
 
     Works independently of (or in addition to) the lighten patch.
+
+    Targets:
+      - KOReader 2026.07.1 (safe_version 202607010000)
+      - coverimage (KOReader built-in plugin), built-in Sleep Screen
 --]]
 
 local userpatch  = require("userpatch")

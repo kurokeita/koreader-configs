@@ -5,8 +5,8 @@ rendering the History list itself. Mutually exclusive with the existing
 "Replace folder name with device info" option.
 
 Targets:
-  - Project: Title @ joshuacant/ProjectTitle commit 31c6777 (or compatible)
-  - KOReader 2026.03 (safe_version 202603000000)
+  - KOReader 2026.07.1 (safe_version 202607010000)
+  - projecttitle @ joshuacant/ProjectTitle 2026.07-v3.8.3
 
 Toggle: in the file browser, open the top menu -> first tab (settings)
         -> Project: Title settings -> Advanced settings -> Footer

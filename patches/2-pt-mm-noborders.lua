@@ -6,7 +6,8 @@ with the thin white variant, so mosaic book covers render without horizontal
 border lines.
 
 Targets:
-  - coverbrowser @ joshuacant/ProjectTitle 2026.03-v3.7 (ptutil line helpers)
+  - KOReader 2026.07.1 (safe_version 202607010000)
+  - projecttitle @ joshuacant/ProjectTitle 2026.07-v3.8.3 (ptutil line helpers)
 --]]
 
 local userpatch = require("userpatch")
