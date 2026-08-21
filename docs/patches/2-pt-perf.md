@@ -87,16 +87,18 @@ their own thumbnails and the cached cover picks of folders containing
 them; batch scans and cache emptying clear everything; negative results
 are not cached while a scan is writing. Evicted buffers are reclaimed by
 GC rather than freed explicitly, since live widgets may still reference
-them. `ptutil.make_sql_safe` is inlined as a fallback for PT releases
-(like the pinned v3.7) that predate it.
+them. `ptutil.make_sql_safe` is required rather than reimplemented: PT
+releases predating it fail section 2's version guard and skip it.
 
 ## Target
 
-- **Patches:** coverbrowser plugin as shipped by Project: Title
+- **Patches:** projecttitle plugin
   (`BookInfoManager` query/lifecycle/mutation methods wrapped;
   `ptutil.query_cover_paths`, `ptutil.build_cover_images`,
   `ptutil.getSubfolderCoverImages`, `ptutil.getFolderCover` replaced)
-- **Written against:** ProjectTitle 2026.03-v3.7 / KOReader 2026.03
+- **Written against:** ProjectTitle 2026.07-v3.8.3 / KOReader 2026.07.1
+- **Verified:** re-checked against changed code: hooked upstream code changed in
+  the pinned release, and the patch was re-verified against the new body.
 - **Requires:** Project: Title plugin installed (replaces coverbrowser).
   Each section version-guards itself independently and skips with a log
   warning if PT's internals have moved; one section bailing does not

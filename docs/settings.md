@@ -27,9 +27,9 @@ Both presets use the same base configuration:
 | --- | --- | --- |
 | `font_scale` | 100 | Global font scale (percent) |
 | `font_size` | 11 | Default overlay font size |
-| `margin_top` | 0 | Distance from the top screen edge |
+| `margin_top` | 10 | Distance from the top screen edge |
 | `margin_bottom` | 5 | Distance from the bottom screen edge |
-| `margin_left` / `margin_right` | 18 | Horizontal distance from screen edges |
+| `margin_left` / `margin_right` | 28 | Horizontal distance from screen edges |
 | `overlap_gap` | 50 | Gap maintained when lines would overlap |
 | `truncation_priority` | center | Which part of a long line is truncated |
 

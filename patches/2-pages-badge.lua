@@ -1,5 +1,7 @@
 --[[ User patch for KOReader to add page count badges for unread books ]]
---
+-- Targets:
+--   - KOReader 2026.07.1 (safe_version 202607010000)
+--   - projecttitle @ joshuacant/ProjectTitle 2026.07-v3.8.3
 local Blitbuffer = require("ffi/blitbuffer")
 
 -- stylua: ignore start
@@ -108,4 +110,4 @@ local function patchCoverBrowserPageCount(plugin)
         end
     end
 end
-userpatch.registerPatchPluginFunc("coverbrowser", patchCoverBrowserPageCount)
+userpatch.registerPatchPluginFunc("projecttitle", patchCoverBrowserPageCount)

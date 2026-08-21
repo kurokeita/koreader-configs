@@ -6,7 +6,8 @@ touch coordinates are passed through unchanged. For devices whose kernel/driver
 already reports rotated coordinates, the stock remap double-rotates input.
 
 Targets:
-  - KOReader core (device input layer), written against KOReader 2026.03
+  - KOReader 2026.07.1 (safe_version 202607010000)
+  - KOReader core (device input layer)
 --]]
 
 local Device = require("device")

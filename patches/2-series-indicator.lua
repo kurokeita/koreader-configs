@@ -1,5 +1,7 @@
 --[[ Patch for KOReader to add series indicator to the right side of the book cover ]]
---
+-- Targets:
+--   - KOReader 2026.07.1 (safe_version 202607010000)
+--   - projecttitle @ joshuacant/ProjectTitle 2026.07-v3.8.3
 local userpatch = require("userpatch")
 local Screen = require("device").screen
 local BD = require("ui/bidi")
@@ -75,4 +77,4 @@ local function patchAddSeriesIndicator(plugin)
         end
     end
 end
-userpatch.registerPatchPluginFunc("coverbrowser", patchAddSeriesIndicator)
+userpatch.registerPatchPluginFunc("projecttitle", patchAddSeriesIndicator)

@@ -6,6 +6,10 @@ This patch disables:
 3. Status widgets (complete/abandoned frames) 
 4. Cover borders
 5. Series indicators
+
+Targets:
+  - KOReader 2026.07.1 (safe_version 202607010000)
+  - projecttitle @ joshuacant/ProjectTitle 2026.07-v3.8.3
 ]]
 --
 
@@ -131,4 +135,4 @@ local function patchDisableUIElements(plugin)
     end
 end
 
-userpatch.registerPatchPluginFunc("coverbrowser", patchDisableUIElements)
+userpatch.registerPatchPluginFunc("projecttitle", patchDisableUIElements)

@@ -1,14 +1,19 @@
 --[[ Patch to add progress percentage badges on book covers ]]
---
+-- Targets:
+--   - KOReader 2026.07.1 (safe_version 202607010000)
+--   - projecttitle @ joshuacant/ProjectTitle 2026.07-v3.8.3
 
 -- stylua: ignore start
 --========================== [[Edit your preferences here]] ================================
 local text_size = 0.25	-- Adjust from 0 to 1
-local move_on_x = 5	    -- Adjust how far left the badge should sit. 
-local move_on_y = -1	-- Adjust how far up the badge should sit.
-local badge_w = 70		-- Adjust badge width
+local move_on_x = 0	    -- Adjust how far right of the cover edge the badge sits.
+local move_on_y = 0	    -- Adjust how far up the badge should sit.
+local badge_w = 40		-- Badge box width. percent.badge.svg is square, so keep this
+						-- equal to badge_h: ImageWidget reports the requested width even
+						-- when the art renders narrower, and centers the art in the excess,
+						-- which shifts the badge right of where it is painted.
 local badge_h = 40		-- Adjust badge height
-local bump_up = 1		-- Adjust text position  
+local bump_up = 1		-- Adjust text position
 --==========================================================================================
 -- stylua: ignore end
 
@@ -52,7 +57,7 @@ local function patchCoverBrowserProgressPercent(plugin)
         -- Use the same corner_mark_size as the original code for consistency
         local corner_mark_size = Screen:scaleBySize(20)
 
-        -- ADD percent badge to top right corner
+        -- ADD percent badge to top left corner
         if
             (self.do_hint_opened and self.been_opened)
             or self.menu.name == "history"
@@ -74,7 +79,7 @@ local function patchCoverBrowserProgressPercent(plugin)
 
             local BADGE_W = Screen:scaleBySize(badge_w) -- badge width
             local BADGE_H = Screen:scaleBySize(badge_h) -- badge height
-            local INSET_X = Screen:scaleBySize(move_on_x) -- push inward from the right edge
+            local INSET_X = Screen:scaleBySize(move_on_x) -- push inward from the left edge
             local INSET_Y = Screen:scaleBySize(move_on_y) -- sit on the inner top edge
             local TEXT_PAD = Screen:scaleBySize(6) -- breathing room inside the badge
 
@@ -105,4 +110,4 @@ local function patchCoverBrowserProgressPercent(plugin)
         end
     end
 end
-userpatch.registerPatchPluginFunc("coverbrowser", patchCoverBrowserProgressPercent)
+userpatch.registerPatchPluginFunc("projecttitle", patchCoverBrowserProgressPercent)

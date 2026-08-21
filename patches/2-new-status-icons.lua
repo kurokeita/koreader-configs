@@ -1,5 +1,7 @@
 --[[ User patch for Project Title plugin to replace with new status icons ]]
---
+-- Targets:
+--   - KOReader 2026.07.1 (safe_version 202607010000)
+--   - projecttitle @ joshuacant/ProjectTitle 2026.07-v3.8.3
 
 local BD = require("ui/bidi")
 local IconWidget = require("ui/widget/iconwidget")
@@ -113,4 +115,4 @@ local function patchCoverBrowserStatusIcons(plugin)
     end
 end
 
-userpatch.registerPatchPluginFunc("coverbrowser", patchCoverBrowserStatusIcons)
+userpatch.registerPatchPluginFunc("projecttitle", patchCoverBrowserStatusIcons)

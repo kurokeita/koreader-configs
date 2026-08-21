@@ -20,7 +20,3 @@ Project-scoped skills live under `.claude/skills/`:
   convention (user-only, `/icon-prep`).
 - `release` — cut a release by pushing a `v*` tag, then curate and
   publish the workflow-created draft (user-only, `/release`).
-
-## Rules
-
-@.claude/rules/serena.md

@@ -1,5 +1,7 @@
 --[[ User patch for KOReader to add custom rounded progress bar ]]
---
+-- Targets:
+--   - KOReader 2026.07.1 (safe_version 202607010000)
+--   - projecttitle @ joshuacant/ProjectTitle 2026.07-v3.8.3
 
 local userpatch = require("userpatch")
 local Screen = require("device").screen
@@ -105,4 +107,4 @@ local function patchCustomProgress(plugin)
     end
 end
 
-userpatch.registerPatchPluginFunc("coverbrowser", patchCustomProgress)
+userpatch.registerPatchPluginFunc("projecttitle", patchCustomProgress)

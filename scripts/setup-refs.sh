@@ -4,6 +4,9 @@
 # patches/plugins are developed against, into a local `_ref/` directory for
 # LSP code navigation and reference. `_ref/` is git-ignored.
 #
+# Versions come from plugins/manifest.yml; there is nothing to edit here on
+# a target bump.
+#
 # Works on Linux and macOS. Re-running updates existing clones in place.
 #
 # Usage:
@@ -15,14 +18,7 @@ set -euo pipefail
 # Resolve the repo root so the script works from any cwd.
 REPO_ROOT="$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
 REF_DIR="${REF_DIR:-${REPO_ROOT}/_ref}"
-
-# Shallow clones keep these large trees small; we only need the source for
-# navigation, not full history. name|url|branch (branch empty = default).
-REPOS=(
-  "koreader|https://github.com/koreader/koreader.git|"
-  "ProjectTitle|https://github.com/joshuacant/ProjectTitle.git|"
-  "bookends.koplugin|https://github.com/AndyHazz/bookends.koplugin.git|"
-)
+MANIFEST="${REPO_ROOT}/plugins/manifest.yml"
 
 require() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -32,26 +28,42 @@ require() {
 }
 
 require git
+require yq
+
+if [ ! -f "$MANIFEST" ]; then
+  echo "error: manifest not found: $MANIFEST" >&2
+  exit 1
+fi
+
+KO_VER="$(yq '.targets[0].koreader' "$MANIFEST")"
+if [ -z "$KO_VER" ] || [ "$KO_VER" = "null" ]; then
+  echo "error: manifest target 0 has no koreader version" >&2
+  exit 1
+fi
+
+# Pin every tree to the first manifest target, so "written against <version>"
+# can be checked against the source actually on disk. KOReader's git tag is its
+# manifest version prefixed with "v"; each plugin tree is named after the last
+# path segment of its repo, which is what .luarc.example.json expects.
+REPOS=( "koreader|https://github.com/koreader/koreader.git|v${KO_VER}" )
+while IFS=$'\t' read -r repo tag; do
+  REPOS+=( "${repo##*/}|https://github.com/${repo}.git|${tag}" )
+done < <(yq '.targets[0].plugins[] | [.repo, .tag] | @tsv' "$MANIFEST")
 
 mkdir -p "$REF_DIR"
 
+# Shallow clones keep these large trees small; we only need the source for
+# navigation, not full history.
 for entry in "${REPOS[@]}"; do
-  IFS='|' read -r name url branch <<<"$entry"
+  IFS='|' read -r name url ref <<<"$entry"
   dest="${REF_DIR}/${name}"
 
+  echo "==> ${name} @ ${ref}"
   if [ -d "${dest}/.git" ]; then
-    echo "==> Updating ${name}"
-    git -C "$dest" fetch --depth 1 origin
-    # Fast-forward the checked-out branch to the fetched tip.
-    git -C "$dest" reset --hard "@{upstream}" 2>/dev/null \
-      || git -C "$dest" reset --hard FETCH_HEAD
+    git -C "$dest" fetch --depth 1 origin tag "$ref"
+    git -C "$dest" checkout -q -f --detach "$ref"
   else
-    echo "==> Cloning ${name}"
-    if [ -n "$branch" ]; then
-      git clone --depth 1 --branch "$branch" "$url" "$dest"
-    else
-      git clone --depth 1 "$url" "$dest"
-    fi
+    git clone --depth 1 --branch "$ref" "$url" "$dest"
   fi
 done
 

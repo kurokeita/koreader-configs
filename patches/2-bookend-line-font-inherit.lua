@@ -14,10 +14,11 @@ family rows, so a seventh family entry would overflow into the pagination
 bar, while the Fonts section paginates correctly.
 
 Targets:
-  - Bookends @ AndyHazz/bookends.koplugin v5.20.0 (or compatible)
-    wraps Bookends:showFontPicker (main.lua:2290), which builds its font list
+  - KOReader 2026.07.1 (safe_version 202607010000)
+  - Bookends @ AndyHazz/bookends.koplugin v5.22.0 (or compatible)
+    wraps Bookends:showFontPicker (main.lua:2388), which builds its font list
     from FontList.fontinfo and validates entries via Font:getFace;
-    line-editor call site bookends_line_editor.lua:698 ("nil = use default"
+    line-editor call site bookends_line_editor.lua:700 ("nil = use default"
     contract at line 78).
 --]]
 

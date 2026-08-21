@@ -59,9 +59,11 @@ scanning cheap while covers are resolved.
 
 ## Target
 
-- **Patches:** coverbrowser plugin as shipped by Project: Title
-  (MosaicMenuItem, `FileChooser.getListItem`)
-- **Written against:** ProjectTitle 2026.03-v3.7 / KOReader 2026.03
+- **Patches:** projecttitle plugin (MosaicMenuItem,
+  `FileChooser.getListItem`)
+- **Written against:** ProjectTitle 2026.07-v3.8.3 / KOReader 2026.07.1
+- **Verified:** re-checked against changed code: hooked upstream code changed in
+  the pinned release, and the patch was re-verified against the new body.
 - **Requires:** Project: Title plugin installed; the
   `rounded.corner.{tl,tr,bl,br}.svg` icons from this repo's `icons/` set
   installed into `koreader/resources/icons/mdlight/`.

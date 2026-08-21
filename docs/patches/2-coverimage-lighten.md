@@ -12,7 +12,9 @@ untouched.
 ## Target
 
 - **Patches:** coverimage plugin (stock KOReader)
-- **Written against:** KOReader 2026.03
+- **Written against:** KOReader 2026.07.1
+- **Verified:** symbol level against the pinned release: every hooked upstream
+  symbol is present, and unchanged from the previous target.
 
 ## Settings
 

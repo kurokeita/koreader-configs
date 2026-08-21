@@ -1,5 +1,7 @@
 --[[ User patch for Project: Title plugin to add faded look for finished books in mosaic view ]]
---
+-- Targets:
+--   - KOReader 2026.07.1 (safe_version 202607010000)
+--   - projecttitle @ joshuacant/ProjectTitle 2026.07-v3.8.3
 
 --========================== Edit your preferences here ================================
 local fading_amount = 0.5 --Set your desired value from 0 to 1.
@@ -51,4 +53,4 @@ local function patchCoverBrowserFaded(plugin)
     end
 end
 
-userpatch.registerPatchPluginFunc("coverbrowser", patchCoverBrowserFaded)
+userpatch.registerPatchPluginFunc("projecttitle", patchCoverBrowserFaded)

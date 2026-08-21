@@ -47,7 +47,8 @@ cover-file probe results and image dimensions (mtime-keyed; a deleted
 cover file is detected and re-probed).
 
 Targets:
-  - coverbrowser @ joshuacant/ProjectTitle 2026.03-v3.7
+  - KOReader 2026.07.1 (safe_version 202607010000)
+  - projecttitle @ joshuacant/ProjectTitle 2026.07-v3.8.3
     (BookInfoManager query/lifecycle/mutation methods wrapped, column
     layout discovered via the BOOKINFO_COLS_SET upvalue;
     ptutil.query_cover_paths, ptutil.build_cover_images,
@@ -308,7 +309,8 @@ local function patchFolderCovers(plugin)
     for _, fn in ipairs({ "query_cover_paths", "build_cover_images",
                           "getSubfolderCoverImages", "getFolderCover",
                           "build_diagonal_stack", "build_grid",
-                          "get_thumbnail_size", "findCover" }) do
+                          "get_thumbnail_size", "findCover",
+                          "make_sql_safe" }) do
         if type(ptutil[fn]) ~= "function" then
             logger.warn("pt-perf: ptutil." .. fn .. " not found, not patching folder covers")
             return
@@ -317,13 +319,7 @@ local function patchFolderCovers(plugin)
     ptutil._foldercover_perf_patched = true
     installInvalidationRegistry(BookInfoManager)
 
-    -- ptutil.make_sql_safe only exists in PT releases newer than
-    -- 2026.03-v3.7; inline the same escaping as a fallback.
-    local make_sql_safe = ptutil.make_sql_safe or function(s)
-        s = s:gsub("'", "''") -- use '' inside '
-        s = s:gsub(";", "_")  -- ljsqlite3 splits commands on semicolons
-        return s
-    end
+    local make_sql_safe = ptutil.make_sql_safe
 
     local Blitbuffer = require("ffi/blitbuffer")
     local FrameContainer = require("ui/widget/container/framecontainer")
@@ -594,7 +590,7 @@ local function patchFolderCovers(plugin)
     logger.info("pt-perf: folder cover caching enabled")
 end
 
-userpatch.registerPatchPluginFunc("coverbrowser", function(plugin)
+userpatch.registerPatchPluginFunc("projecttitle", function(plugin)
     patchBookInfoCache(plugin)
     patchFolderCovers(plugin)
 end)
