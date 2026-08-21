@@ -15,7 +15,7 @@ Collections. The patch also forces `alpha = true` on every corner-mark
 
 ## Target
 
-- **Patches:** coverbrowser plugin (MosaicMenuItem paint path) and
+- **Patches:** projecttitle plugin (MosaicMenuItem paint path) and
   `IconWidget`; written for Project: Title's mosaic view
 - **Written against:** ProjectTitle 2026.07-v3.8.3 / KOReader 2026.07.1
 - **Requires:** the `dogear.reading.svg`, `dogear.complete.svg`, and

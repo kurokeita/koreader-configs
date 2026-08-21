@@ -13,8 +13,7 @@ source of truth for placement.
 
 ## Target
 
-- **Patches:** coverbrowser plugin (MosaicMenuItem paint path); works with
-  stock coverbrowser and Project: Title
+- **Patches:** projecttitle plugin (MosaicMenuItem paint path)
 - **Written against:** KOReader 2026.07.1 / ProjectTitle 2026.07-v3.8.3
 - **Requires:** the `percent.badge.svg` icon from this repo's `icons/` set
   installed into `koreader/resources/icons/mdlight/`

@@ -12,8 +12,7 @@ and only in mosaic view; list views are untouched.
 
 ## Target
 
-- **Patches:** coverbrowser plugin (MosaicMenuItem paint path); works with
-  stock coverbrowser and Project: Title
+- **Patches:** projecttitle plugin (MosaicMenuItem paint path)
 - **Written against:** KOReader 2026.07.1 / ProjectTitle 2026.07-v3.8.3
 
 ## Settings

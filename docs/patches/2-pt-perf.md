@@ -92,7 +92,7 @@ releases predating it fail section 2's version guard and skip it.
 
 ## Target
 
-- **Patches:** coverbrowser plugin as shipped by Project: Title
+- **Patches:** projecttitle plugin
   (`BookInfoManager` query/lifecycle/mutation methods wrapped;
   `ptutil.query_cover_paths`, `ptutil.build_cover_images`,
   `ptutil.getSubfolderCoverImages`, `ptutil.getFolderCover` replaced)

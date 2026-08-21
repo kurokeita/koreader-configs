@@ -9,8 +9,7 @@ reopens the last document.
 
 ## Target
 
-- **Patches:** coverbrowser plugin as shipped by Project: Title (CoverMenu
-  footer/menu init)
+- **Patches:** projecttitle plugin (CoverMenu footer/menu init)
 - **Written against:** ProjectTitle 2026.07-v3.8.3 /
   KOReader 2026.07.1
 - **Requires:** Project: Title plugin installed (replaces coverbrowser);

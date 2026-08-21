@@ -11,8 +11,7 @@ scrolling stays cheap.
 
 ## Target
 
-- **Patches:** coverbrowser plugin (MosaicMenuItem init/paint/free); works
-  with stock coverbrowser and Project: Title
+- **Patches:** projecttitle plugin (MosaicMenuItem init/paint/free)
 - **Written against:** KOReader 2026.07.1 / ProjectTitle 2026.07-v3.8.3
 
 ## Settings

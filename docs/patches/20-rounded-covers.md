@@ -11,7 +11,7 @@ cover and stay crisp.
 
 ## Target
 
-- **Patches:** coverbrowser plugin (MosaicMenuItem paint path); written for
+- **Patches:** projecttitle plugin (MosaicMenuItem paint path); written for
   Project: Title's mosaic view
 - **Written against:** ProjectTitle 2026.07-v3.8.3 / KOReader 2026.07.1
 - **Requires:** the `rounded.corner.{tl,tr,bl,br}.svg` icons from this

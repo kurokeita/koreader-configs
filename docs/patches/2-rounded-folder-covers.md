@@ -59,8 +59,8 @@ scanning cheap while covers are resolved.
 
 ## Target
 
-- **Patches:** coverbrowser plugin as shipped by Project: Title
-  (MosaicMenuItem, `FileChooser.getListItem`)
+- **Patches:** projecttitle plugin (MosaicMenuItem,
+  `FileChooser.getListItem`)
 - **Written against:** ProjectTitle 2026.07-v3.8.3 / KOReader 2026.07.1
 - **Requires:** Project: Title plugin installed; the
   `rounded.corner.{tl,tr,bl,br}.svg` icons from this repo's `icons/` set
