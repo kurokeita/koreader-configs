@@ -54,7 +54,7 @@ A release bundle unzips to a single directory named
    | Plugin | Upstream releases | Pinned tag (KOReader 2026.07.1 "Sailing Walrus") |
    | --- | --- | --- |
    | Project: Title | <https://github.com/joshuacant/ProjectTitle/releases> | `2026.07-v3.8.3` |
-   | Bookends | <https://github.com/AndyHazz/bookends.koplugin/releases> | `v5.20.0` |
+   | Bookends | <https://github.com/AndyHazz/bookends.koplugin/releases> | `v5.22.0` |
 
    Unzip each release and drop the `*.koplugin/` folder whole into
    `koreader/plugins/`. The pins matter: several patches wrap specific

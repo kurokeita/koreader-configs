@@ -9,7 +9,7 @@ applied only at render time and reverts automatically when disabled or when a
 book has no usable embedded font.
 
 Targets:
-  - Bookends @ AndyHazz/bookends.koplugin v5.20.0 (or compatible)
+  - Bookends @ AndyHazz/bookends.koplugin v5.22.0 (or compatible)
     wraps Bookends:resolveLineConfig (main.lua:1016) and
     Bookends:buildBookendsSettingsMenu (menu/main_menu.lua:209)
   - KOReader 2026.07.1 (safe_version 202607010000), with ffi/archiver and

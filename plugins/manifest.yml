@@ -6,5 +6,5 @@ targets:
         tag: "2026.07-v3.8.3"
         install_dir: projecttitle.koplugin
       - repo: AndyHazz/bookends.koplugin
-        tag: "v5.20.0"
+        tag: "v5.22.0"
         install_dir: bookends.koplugin
