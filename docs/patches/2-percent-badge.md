@@ -6,10 +6,9 @@ number centered on it. Badges appear only for in-progress books: the book
 must have a reading position, not be finished, and either carry the "opened"
 hint or be shown from History or Collections.
 
-Note: the file's own header comment says "top right corner", but as
-configured the badge is anchored to the cover's top-left edge
-(`move_on_x` is measured from the left). Treat the constants block as the
-source of truth for placement.
+The badge is anchored to the cover's top-left corner, flush against it by
+default. The backdrop SVG carries no outline of its own, so the cover's own
+frame border supplies the edge rather than doubling up with a second line.
 
 ## Target
 
@@ -23,14 +22,14 @@ source of truth for placement.
 ## Settings
 
 No in-app settings. Appearance is tuned via the constants block at the top
-of the file (`patches/2-percent-badge.lua:5-12`):
+of the file (`patches/2-percent-badge.lua:8-17`):
 
 | Constant | Default | What it does |
 | --- | --- | --- |
 | `text_size` | 0.25 | Text size as a fraction of the corner mark size |
-| `move_on_x` | 5 | Horizontal inset from the cover's left edge |
-| `move_on_y` | -1 | Vertical offset from the cover's top edge |
-| `badge_w` | 70 | Badge width (scaled) |
+| `move_on_x` | 0 | Horizontal inset from the cover's left edge; 0 is flush |
+| `move_on_y` | 0 | Vertical offset from the cover's top edge; 0 is flush |
+| `badge_w` | 40 | Badge box width (scaled). `percent.badge.svg` is square, so keep this equal to `badge_h` |
 | `badge_h` | 40 | Badge height (scaled) |
 | `bump_up` | 1 | Upward nudge of the text inside the badge |
 
