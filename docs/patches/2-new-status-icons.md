@@ -18,6 +18,8 @@ Collections. The patch also forces `alpha = true` on every corner-mark
 - **Patches:** projecttitle plugin (MosaicMenuItem paint path) and
   `IconWidget`; written for Project: Title's mosaic view
 - **Written against:** ProjectTitle 2026.07-v3.8.3 / KOReader 2026.07.1
+- **Verified:** re-checked against changed code: hooked upstream code changed in
+  the pinned release, and the patch was re-verified against the new body.
 - **Requires:** the `dogear.reading.svg`, `dogear.complete.svg`, and
   `dogear.abandoned.svg` icons from this repo's `icons/` set installed into
   `koreader/resources/icons/mdlight/`

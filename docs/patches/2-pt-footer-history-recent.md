@@ -12,6 +12,8 @@ reopens the last document.
 - **Patches:** projecttitle plugin (CoverMenu footer/menu init)
 - **Written against:** ProjectTitle 2026.07-v3.8.3 /
   KOReader 2026.07.1
+- **Verified:** symbol level against the pinned release: every hooked upstream
+  symbol is present, and unchanged from the previous target.
 - **Requires:** Project: Title plugin installed (replaces coverbrowser);
   without it this patch does nothing. Uses the `history` and `last_document`
   icons (shipped by PT, also present in this repo's `icons/` set).

@@ -11,6 +11,8 @@ region so the protruding tab is repainted correctly.
 
 - **Patches:** projecttitle plugin (MosaicMenuItem paint path)
 - **Written against:** KOReader 2026.07.1 / ProjectTitle 2026.07-v3.8.3
+- **Verified:** re-checked against changed code: hooked upstream code changed in
+  the pinned release, and the patch was re-verified against the new body.
 
 ## Settings
 

@@ -10,6 +10,8 @@ render without border lines between sections.
 
 - **Patches:** projecttitle plugin (`ptutil` line helpers)
 - **Written against:** ProjectTitle 2026.07-v3.8.3 / KOReader 2026.07.1
+- **Verified:** symbol level against the pinned release: every hooked upstream
+  symbol is present, and unchanged from the previous target.
 - **Requires:** Project: Title plugin installed (replaces coverbrowser);
   without it (no `ptutil` module) this patch does nothing.
 

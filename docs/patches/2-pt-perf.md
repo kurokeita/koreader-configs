@@ -97,6 +97,8 @@ releases predating it fail section 2's version guard and skip it.
   `ptutil.query_cover_paths`, `ptutil.build_cover_images`,
   `ptutil.getSubfolderCoverImages`, `ptutil.getFolderCover` replaced)
 - **Written against:** ProjectTitle 2026.07-v3.8.3 / KOReader 2026.07.1
+- **Verified:** re-checked against changed code: hooked upstream code changed in
+  the pinned release, and the patch was re-verified against the new body.
 - **Requires:** Project: Title plugin installed (replaces coverbrowser).
   Each section version-guards itself independently and skips with a log
   warning if PT's internals have moved; one section bailing does not

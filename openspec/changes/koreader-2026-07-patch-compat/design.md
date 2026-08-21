@@ -69,16 +69,24 @@ can be verified until these move.
 
 ## Decisions
 
-### Pin format: prose header plus a `safe_version` literal
+### Pin format: prose header only
 
-Each patch gets both a human-readable `KOReader 2026.07.1 (safe_version 202607010000)`
-line in its header block and a `local safe_version = 202607010000` literal.
+Each patch gets a human-readable `KOReader 2026.07.1 (safe_version 202607010000)` line in
+its header block, and nothing else.
 
 The numeric value is not arbitrary. KOReader's `Version:getNormalizedVersion` computes
 `((year * 100 + month) * 1000000) + point * 10000 + revision`, so `v2026.07.1` is
-`(2026*100+7)*1000000 + 1*10000` = `202607010000`. The existing pin in
-`2-pt-footer-history-recent.lua` (`202603000000` for 2026.03) follows the same formula,
-so this extends a convention already in the repo rather than inventing one.
+`(2026*100+7)*1000000 + 1*10000` = `202607010000`.
+
+**Corrected during implementation.** This decision originally also called for a
+`local safe_version = 202607010000` literal in every patch, justified on the claim that
+it "extends a convention already in the repo" because `2-pt-footer-history-recent.lua`
+carried a `202603000000` pin. That claim was false. The only prior occurrence of
+`safe_version` anywhere in the repo was inside a comment, never a declaration, and the
+audit skill's `safe_version%s*[=]?%s*(%d+)` regex had been matching that comment prose.
+Adding the literal to 19 files would therefore have introduced 19 unused locals with
+`unused-local` diagnostics and no reader. The literal was dropped and the pin is
+header-only; the value still appears in the header text so it stays greppable.
 
 Alternatives: prose only, which is what 2 of the 3 currently-pinned patches do and what
 made the audit regex-dependent and the other 16 patches invisible; or a manifest-side
