@@ -309,7 +309,8 @@ local function patchFolderCovers(plugin)
     for _, fn in ipairs({ "query_cover_paths", "build_cover_images",
                           "getSubfolderCoverImages", "getFolderCover",
                           "build_diagonal_stack", "build_grid",
-                          "get_thumbnail_size", "findCover" }) do
+                          "get_thumbnail_size", "findCover",
+                          "make_sql_safe" }) do
         if type(ptutil[fn]) ~= "function" then
             logger.warn("pt-perf: ptutil." .. fn .. " not found, not patching folder covers")
             return
@@ -318,13 +319,7 @@ local function patchFolderCovers(plugin)
     ptutil._foldercover_perf_patched = true
     installInvalidationRegistry(BookInfoManager)
 
-    -- ptutil.make_sql_safe only exists in PT releases newer than
-    -- 2026.03-v3.7; inline the same escaping as a fallback.
-    local make_sql_safe = ptutil.make_sql_safe or function(s)
-        s = s:gsub("'", "''") -- use '' inside '
-        s = s:gsub(";", "_")  -- ljsqlite3 splits commands on semicolons
-        return s
-    end
+    local make_sql_safe = ptutil.make_sql_safe
 
     local Blitbuffer = require("ffi/blitbuffer")
     local FrameContainer = require("ui/widget/container/framecontainer")
