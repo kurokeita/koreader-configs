@@ -233,7 +233,7 @@ userpatch.registerPatchPluginFunc("coverimage", function(plugin)
         local fmt = self.cover_image_format ~= "auto" and self.cover_image_format or ext
         if not bb:writeToFile(self.cover_image_path, fmt,
                               self.cover_image_quality, self.cover_image_grayscale) then
-            logger.warn("eink-optimize: error writing optimised image to", self.cover_image_path)
+            logger.warn("eink-optimize: error writing optimized image to", self.cover_image_path)
         end
         bb:free()
     end
