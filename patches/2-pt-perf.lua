@@ -594,7 +594,7 @@ local function patchFolderCovers(plugin)
     logger.info("pt-perf: folder cover caching enabled")
 end
 
-userpatch.registerPatchPluginFunc("coverbrowser", function(plugin)
+userpatch.registerPatchPluginFunc("projecttitle", function(plugin)
     patchBookInfoCache(plugin)
     patchFolderCovers(plugin)
 end)

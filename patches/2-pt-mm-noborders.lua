@@ -31,4 +31,4 @@ local function patchMosaicMenu(plugin)
     logger.info("MosaicMenu patched: ptutil line functions overridden to remove borders")
 end
 
-userpatch.registerPatchPluginFunc("coverbrowser", patchMosaicMenu)
+userpatch.registerPatchPluginFunc("projecttitle", patchMosaicMenu)
