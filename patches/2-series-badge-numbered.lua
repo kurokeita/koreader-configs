@@ -4,6 +4,7 @@
 --   - projecttitle @ joshuacant/ProjectTitle 2026.07-v3.8.3
 local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
+local CenterContainer = require("ui/widget/container/centercontainer")
 local TextWidget = require("ui/widget/textwidget")
 local userpatch = require("userpatch")
 local Screen = require("device").screen
@@ -13,8 +14,9 @@ local Blitbuffer = require("ffi/blitbuffer")
 -- stylua: ignore start
 --========================== [[Edit your preferences here]] ================================
 local font_size = 11                                       -- Adjust from 0 to 1
+local move_on_x = 0                                        -- Inset from the cover's right edge; 0 is flush
+local move_on_y = 0                                        -- Inset from the cover's top edge; 0 is flush
 local border_thickness = 1                                 -- Adjust from 0 to 5
-local border_corner_radius = 9                             -- Adjust from 0 to 20
 local text_color = Blitbuffer.colorFromString("#000000")   -- Choose your desired color
 local border_color = Blitbuffer.colorFromString("#000000") -- Choose your desired color
 local background_color = Blitbuffer.COLOR_GRAY_E           -- Choose your desired color
@@ -60,17 +62,20 @@ local function patchAddSeriesIndicator(plugin)
 				face = Font:getFace("cfont", font_size),
 				bold = true,
 				fgcolor = text_color,
+				padding = 0,
 			}
 			
+			-- Square the content box so the radius below rounds it to a circle,
+			-- matching the folder item-count badge in 2-rounded-folder-covers.lua.
+			local size = math.max(series_text:getSize().w, series_text:getSize().h)
 			self.series_badge = FrameContainer:new{
-				linesize = Screen:scaleBySize(2),
-				radius = Screen:scaleBySize(border_corner_radius),
-				color = border_color,
+				padding = 2,
 				bordersize = border_thickness,
+				color = border_color,
+				radius = math.ceil(size),
 				background = background_color,
-				padding = Screen:scaleBySize(2),
 				margin = 0,
-				series_text,
+				CenterContainer:new{ dimen = { w = size, h = size }, series_text },
 			}
 			
 			-- Store text widget reference for cleanup
@@ -94,25 +99,16 @@ local function patchAddSeriesIndicator(plugin)
                 return
             end
 
-            -- Calculate position
-            local d_w = math.ceil(target.dimen.w / 5)
-            local d_h = math.ceil(target.dimen.h / 10)
-
-			local ix, iy = 0, 5
-            
+            local sz = self.series_badge:getSize()
+            local badge_x
             if BD.mirroredUILayout() then
-                ix = -math.floor(d_w)  -- on left side
+            	badge_x = target.dimen.x + Screen:scaleBySize(move_on_x)
             else
-                ix = target.dimen.w - math.floor(d_w)  -- on right side
+            	badge_x = target.dimen.x + target.dimen.w - sz.w - Screen:scaleBySize(move_on_x)
             end
-
-            -- Calculate badge position (relative to target)
-			local series_badge_size = self.series_badge:getSize()
-			local badge_x = target.dimen.x + ix + (d_w - series_badge_size.w) / 2
-			local badge_y = target.dimen.y + iy + (d_h - series_badge_size.h) / 2
-
-            -- Paint the badge
-            self.series_badge:paintTo(bb, badge_x, badge_y)
+            local badge_y = target.dimen.y + Screen:scaleBySize(move_on_y)
+            
+            self.series_badge:paintTo(bb, math.floor(badge_x), math.floor(badge_y))
         end
     end
 	
