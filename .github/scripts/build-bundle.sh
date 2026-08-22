@@ -37,7 +37,11 @@ if [ -z "$CODENAME" ] || [ "$CODENAME" = "null" ]; then
   exit 1
 fi
 
-BUNDLE_NAME="koreader-configs-${RELEASE_TAG}-koreader${KO_VER}-${CODENAME}"
+# GitHub rewrites spaces in release asset names to dots, which would leave the
+# filename recorded inside the .sha256 unverifiable against the asset users
+# actually download. Do that substitution here so the local name, the uploaded
+# name and the checksum all agree. VERSIONS.txt keeps the readable codename.
+BUNDLE_NAME="koreader-configs-${RELEASE_TAG}-koreader${KO_VER}-${CODENAME// /.}"
 STAGING="$OUT_DIR/staging/$BUNDLE_NAME"
 
 mkdir -p "$STAGING/plugins"
