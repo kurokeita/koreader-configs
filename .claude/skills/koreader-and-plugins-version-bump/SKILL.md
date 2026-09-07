@@ -33,8 +33,9 @@ Run both sections unless the user names one.
 
 ## Part 1: Patch audit
 
-1. List every `.lua` file directly inside `patches/` (skip `.disabled`
-   files unless the user asks for them).
+1. List every `.lua` and `.lua.disabled` file directly inside
+   `patches/`. Audit both: a disabled patch's pin still has to be
+   re-validated before anyone can enable it.
 2. For each file, extract:
    - **Pinned version**: the first match of
      `safe_version%s*[=]?%s*(%d+)` in the file body (the
@@ -51,12 +52,19 @@ Run both sections unless the user names one.
      pinned: 202603000000   (KOReader 2026.03)
      summary: <one-line header>
      last touched: 2026-05-09  a2cb017
+
+   patches/<file>.lua.disabled   (disabled)
+     pinned: 202603000000   (KOReader 2026.03)
+     summary: <one-line header>
+     last touched: 2026-05-09  a2cb017
    ```
 
 4. If a target version is provided:
    - Mark each patch as **OK** (pinned >= target), **STALE** (pinned
      < target), or **UNKNOWN** (no pin found).
-   - Output a final summary count.
+   - Output a final summary count, with disabled patches counted
+     separately so a stale disabled patch does not read as shipping
+     broken.
 
 ## Part 2: Bundled plugin audit
 
