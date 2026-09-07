@@ -17,7 +17,7 @@ Default font setting itself) are left untouched.
 ## Target
 
 - **Patches:** bookends plugin
-- **Written against:** Bookends v5.22.0 (wraps `Bookends:showFontPicker`,
+- **Written against:** Bookends v5.25.0 (wraps `Bookends:showFontPicker`,
   call site in `bookends_line_editor.lua`) / KOReader 2026.07.1
 - **Verified:** symbol level against the pinned release: every hooked upstream
   symbol is present, and unchanged from the previous target.

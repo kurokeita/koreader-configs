@@ -21,7 +21,7 @@ cache is pruned to the single font in use.
 ## Target
 
 - **Patches:** bookends plugin
-- **Written against:** Bookends v5.22.0 (wraps `Bookends:resolveLineConfig`
+- **Written against:** Bookends v5.25.0 (wraps `Bookends:resolveLineConfig`
   and `Bookends:buildBookendsSettingsMenu`); needs KOReader with
   `ffi/archiver` (2026.07.1)
 - **Verified:** re-checked against changed code: hooked upstream code changed in
