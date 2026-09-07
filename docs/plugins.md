@@ -10,7 +10,7 @@ functions inside these releases. For example, `2-bookend-unifont.lua` wraps
 Bookends releases, and the Project: Title patches reach into
 `MosaicMenuItem` internals. Running other plugin versions may silently
 disable a patch or break the view. If you upgrade a plugin, re-audit the
-patches first (the `koreader-version-bump` skill in this repo automates the
+patches first (the `koreader-and-plugins-version-bump` skill in this repo automates the
 check).
 
 ## Version compatibility
