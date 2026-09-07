@@ -19,7 +19,6 @@ KOReader itself rather than a plugin.
 | 2 | [`2-bookend-unifont.lua`](../docs/patches/2-bookend-unifont.md) | bookends (v5.25.0) | Render Bookends overlays in the open book's embedded font. |
 | 2 | [`2-coverimage-eink-optimize.lua`](../docs/patches/2-coverimage-eink-optimize.md) | coverimage | Cover image optimization for color e-ink screens (gamma lift, saturation boost, S-curve contrast). |
 | 2 | [`2-coverimage-lighten.lua`](../docs/patches/2-coverimage-lighten.md) | coverimage | Add a "Lighten for color e-ink" slider to the Cover Image menu. |
-| 2 | [`2-disable-input-rotation-map.lua`](../docs/patches/2-disable-input-rotation-map.md) | core | Stop KOReader from remapping touch input on rotation. |
 | 2 | [`2-menu-size.lua`](../docs/patches/2-menu-size.md) | core | Scale menu item counts to the screen's real DPI. |
 | 2 | [`2-new-progress-bar.lua`](../docs/patches/2-new-progress-bar.md) | projecttitle (v3.8.3) | Add a custom rounded progress bar to book covers. |
 | 2 | [`2-new-status-icons.lua`](../docs/patches/2-new-status-icons.md) | projecttitle (v3.8.3) | Replace Project: Title corner status marks with new status icons. |
@@ -36,7 +35,9 @@ KOReader itself rather than a plugin.
 
 ## Disabled
 
+Shipped with a `.lua.disabled` suffix, so KOReader ignores them. Rename to
+`.lua` on the device and restart to enable one.
+
 | File | Summary |
 | --- | --- |
-
-_(none)_
+| [`2-disable-input-rotation-map.lua.disabled`](../docs/patches/2-disable-input-rotation-map.md) | Stop KOReader from remapping physical keys on rotation. |

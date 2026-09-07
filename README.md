@@ -34,7 +34,9 @@ See [INSTALL.md](INSTALL.md) for step-by-step instructions.
 
 The `patches/` directory holds Lua files prefixed with a load-order number (e.g.
 `2-`, `20-`). They are picked up automatically by KOReader as
-[userpatches](https://github.com/koreader/koreader/wiki/User-patches).
+[userpatches](https://github.com/koreader/koreader/wiki/User-patches). Files
+ending in `.lua.disabled` ship inert; rename them to `.lua` on the device to
+enable them.
 
 ## Plugins
 

@@ -1,15 +1,32 @@
 # 2-disable-input-rotation-map.lua
 
-Stops KOReader from remapping touch coordinates when the screen rotates, by
+Stops KOReader from renaming physical key events when the screen rotates, by
 replacing `Device.input.rotation_map` with empty tables for all four
-rotations. Touch input is then passed through unchanged in every
-orientation.
+rotations.
 
-**Warning:** this is only useful on devices whose kernel or touch driver
-already reports rotated coordinates, where KOReader's stock remap rotates
-the input a second time and taps land in the wrong place. On devices where
-the stock behavior is correct, installing this patch breaks touch in rotated
-orientations. Install it only if you see the double-rotation symptom.
+That map is read in exactly one place, `input.lua:813`, where it rewrites a
+key's name to follow the screen orientation: `Up` becomes `Right`, `LPgBack`
+becomes `LPgFwd`, and so on. On a Boox the page-turn buttons arrive as
+`VOLUME_UP`/`VOLUME_DOWN` and are mapped to `LPgBack`/`LPgFwd`
+(`android/event_map.lua`), so they are exactly the names the stock map flips.
+With the map emptied, the keys keep their unrotated names. It does not affect
+touch coordinates.
+
+**Ships disabled.** The bundle contains this patch as
+`2-disable-input-rotation-map.lua.disabled`, so it does nothing after a normal
+install. KOReader 2026.07.1 already calls `Input:disableRotationMap()` for the
+Onyx models that need this — `go7`, `gocolor7`, `gocolor7_2`, `hibreak`,
+`moaanmix7`, `xiaomi_reader` (see
+[koreader#12423](https://github.com/koreader/koreader/issues/12423)) — and that
+installs the same empty map this patch does, so on those devices the patch is
+redundant.
+
+**Warning:** this is only useful on a device whose firmware already reports
+keys by gravity, where KOReader's stock rename rotates them a second time and
+the page-turn buttons work backwards in rotated orientations. On a device where
+the stock behavior is correct, enabling this patch makes the buttons stop
+following the screen. Enable it only if the buttons are wrong and the device is
+not on the list above.
 
 ## Target
 
@@ -20,13 +37,20 @@ orientations. Install it only if you see the double-rotation symptom.
 
 ## Settings
 
-No settings. Active whenever the patch file is installed.
+No settings. Active whenever the patch file is installed with a `.lua`
+extension.
 
-## Disable
+## Enable
 
-Remove or rename `koreader/patches/2-disable-input-rotation-map.lua` on the
-device (add a `.disabled` suffix to keep it around), then restart KOReader.
+Rename `koreader/patches/2-disable-input-rotation-map.lua.disabled` to
+`2-disable-input-rotation-map.lua` on the device, then restart KOReader. To
+turn it back off, restore the `.disabled` suffix (or delete the file) and
+restart again.
 
 ## Interactions
 
-None; it touches only the input layer.
+None; it touches only the input layer. In particular it has no effect on screen
+rotation — orientation on Android comes from the OS window config change, and
+KOReader's own saved modes (`fm_rotation_mode` for the browser,
+`kopt_rotation_mode`/`copt_rotation_mode` per document, both gated on
+`lock_rotation`). If rotation looks stuck, check those settings, not this patch.

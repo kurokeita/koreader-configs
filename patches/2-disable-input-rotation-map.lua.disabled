@@ -1,0 +1,23 @@
+--[[
+disable-input-rotation-map - stop KOReader from remapping physical keys on rotation.
+
+Replaces Device.input.rotation_map with empty tables for all four rotations.
+That map is read in one place (input.lua:813) and renames key events to follow
+the screen: Up -> Right, LPgBack -> LPgFwd and so on. Emptying it makes the
+physical keys keep their unrotated names, which is what devices whose firmware
+already reports keys by gravity need.
+
+Ships DISABLED (`.lua.disabled`): KOReader 2026.07.1 already calls
+Input:disableRotationMap() itself for the Onyx models that need it -- go7,
+gocolor7, gocolor7_2, hibreak, moaanmix7, xiaomi_reader (koreader#12423) --
+which installs exactly this same empty map, so the patch is redundant there.
+Rename to `2-disable-input-rotation-map.lua` and restart KOReader only on a
+device that needs it and is not on that list.
+
+Targets:
+  - KOReader 2026.07.1 (safe_version 202607010000)
+  - KOReader core (device input layer)
+--]]
+
+local Device = require("device")
+Device.input.rotation_map = {[0]={}, [1]={}, [2]={}, [3]={}}
