@@ -14,8 +14,10 @@ Project-scoped skills live under `.claude/skills/`:
   conventions for KOReader (auto-invoked).
 - `patch-changelog` — regenerate `patches/README.md` index after
   adding/removing patches.
-- `koreader-version-bump` — audit each patch's pinned KOReader version
-  (user-only, `/koreader-version-bump`).
+- `koreader-and-plugins-version-bump` — audit each patch's pinned
+  KOReader version and the bundled plugin tags in
+  `plugins/manifest.yml` (user-only,
+  `/koreader-and-plugins-version-bump`).
 - `icon-prep` — normalize a new SVG to the existing `icons/`
   convention (user-only, `/icon-prep`).
 - `release` — cut a release by pushing a `v*` tag, then curate and

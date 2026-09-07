@@ -15,8 +15,8 @@ bar, while the Fonts section paginates correctly.
 
 Targets:
   - KOReader 2026.07.1 (safe_version 202607010000)
-  - Bookends @ AndyHazz/bookends.koplugin v5.22.0 (or compatible)
-    wraps Bookends:showFontPicker (main.lua:2388), which builds its font list
+  - Bookends @ AndyHazz/bookends.koplugin v5.25.0 (or compatible)
+    wraps Bookends:showFontPicker (main.lua:2637), which builds its font list
     from FontList.fontinfo and validates entries via Font:getFace;
     line-editor call site bookends_line_editor.lua:700 ("nil = use default"
     contract at line 78).
